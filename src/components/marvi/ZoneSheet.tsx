@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { BeachZone, statusLabel, statusColor, canConquer } from "@/lib/marvi-data";
-import { useMarvi } from "@/lib/marvi-store";
+import { Zone, statusLabel, statusColor, canConquer } from "@/lib/marvi-types";
+import { useGuardians, useMyProfile, useConquerZone, useReportCleanup, useCheckIn } from "@/lib/marvi-queries";
+import { useAuth } from "@/hooks/useAuth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -8,41 +9,41 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Crown, Flag, Swords, Calendar, Trash2 } from "lucide-react";
+import { Crown, Flag, Swords, Calendar, Trash2, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
-export const ZoneSheet = ({ zone, onClose }: { zone: BeachZone | null; onClose: () => void }) => {
-  const guardianOf = useMarvi((s) => s.guardianOf);
-  const me = useMarvi((s) => s.me());
-  const conquerZone = useMarvi((s) => s.conquerZone);
-  const reportCleanup = useMarvi((s) => s.reportCleanup);
-  const checkInZone = useMarvi((s) => s.checkInZone);
+export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () => void }) => {
+  const { user } = useAuth();
+  const { data: guardians } = useGuardians();
+  const { data: me } = useMyProfile();
+  const conquer = useConquerZone();
+  const report = useReportCleanup();
+  const checkIn = useCheckIn();
   const [kilos, setKilos] = useState("");
 
   if (!zone) return null;
-  const owner = guardianOf(zone);
-  const isMine = owner?.id === me.id;
+  const owner = zone.guardian_id ? guardians?.find((g) => g.id === zone.guardian_id) : null;
+  const isMine = !!user && owner?.id === user.id;
   const tone = statusColor(zone.status);
-  const verdict = canConquer(me, owner);
+  const verdict = canConquer(me?.total_tons ?? 0, owner?.total_tons ?? null, owner?.display_name ?? null, isMine);
 
-  const handleConquer = () => {
-    const r = conquerZone(zone.id);
-    if (r.ok) toast.success(r.message);
+  const handleConquer = async () => {
+    const r = await conquer.mutateAsync(zone.id);
+    if (r.ok) { toast.success(r.message); onClose(); }
     else toast.error(r.message);
-    if (r.ok) onClose();
   };
 
-  const handleReport = () => {
+  const handleReport = async () => {
     const k = Number(kilos);
-    const r = reportCleanup(zone.id, k);
-    if (r.ok) {
-      toast.success(r.message);
-      setKilos("");
-    } else toast.error(r.message);
+    if (k <= 0) return toast.error("Indica una cantidad válida.");
+    const r = await report.mutateAsync({ zoneId: zone.id, kilos: k });
+    if (r.ok) { toast.success(r.message); setKilos(""); }
+    else toast.error(r.message);
   };
 
-  const handleCheckIn = () => {
-    const r = checkInZone(zone.id);
+  const handleCheckIn = async () => {
+    const r = await checkIn.mutateAsync(zone.id);
     if (r.ok) toast.success(r.message);
     else toast.error(r.message);
   };
@@ -74,6 +75,10 @@ export const ZoneSheet = ({ zone, onClose }: { zone: BeachZone | null; onClose: 
         </SheetHeader>
 
         <div className="p-5 space-y-5">
+          {zone.description && (
+            <p className="text-sm text-muted-foreground italic">{zone.description}</p>
+          )}
+
           {/* Guardian */}
           <div className="glass-card rounded-2xl p-4 flex items-center gap-3">
             <div className="size-12 rounded-2xl bg-gradient-sea grid place-items-center text-white">
@@ -82,17 +87,15 @@ export const ZoneSheet = ({ zone, onClose }: { zone: BeachZone | null; onClose: 
             <div className="flex-1 min-w-0">
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Guardián</p>
               <p className="font-bold text-deep truncate">
-                {owner ? owner.name : "Vacante — zona libre"}
+                {owner ? owner.display_name : "Vacante — zona libre"}
               </p>
-              {owner && (
+              {owner && zone.conquered_with_tons !== null && (
                 <p className="text-xs text-muted-foreground">
-                  Conquistó con <b className="text-primary">{zone.conqueredWithTons?.toFixed(2)} t</b>
+                  Conquistó con <b className="text-primary">{Number(zone.conquered_with_tons).toFixed(2)} t</b>
                 </p>
               )}
             </div>
-            {isMine && (
-              <Badge className="bg-primary/15 text-primary border-primary/20 hover:bg-primary/15">Tú</Badge>
-            )}
+            {isMine && <Badge className="bg-primary/15 text-primary border-primary/20 hover:bg-primary/15">Tú</Badge>}
           </div>
 
           {/* Streak */}
@@ -115,7 +118,7 @@ export const ZoneSheet = ({ zone, onClose }: { zone: BeachZone | null; onClose: 
             <p className="text-xs text-muted-foreground">
               {zone.status === "protected"
                 ? "Zona blindada como Protegida."
-                : "Trabaja 7 días seguidos para protegerla. Si fallas, se ensucia y queda vulnerable."}
+                : "Trabaja 7 días seguidos para protegerla. Si fallas, queda vulnerable."}
             </p>
           </div>
 
@@ -123,21 +126,27 @@ export const ZoneSheet = ({ zone, onClose }: { zone: BeachZone | null; onClose: 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-deep">
               <span className="flex items-center gap-1.5"><Trash2 className="size-3.5" /> NIVEL DE CONTAMINACIÓN</span>
-              <span className="tabular-nums">{Math.round(zone.hazardLevel)}%</span>
+              <span className="tabular-nums">{Math.round(zone.hazard_level)}%</span>
             </div>
-            <Progress value={zone.hazardLevel} className="h-2" />
+            <Progress value={zone.hazard_level} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              Total recolectado en zona: <b className="text-deep">{zone.totalTonsCollected.toFixed(3)} t</b>
+              Total recolectado en zona: <b className="text-deep">{Number(zone.total_tons_collected).toFixed(3)} t</b>
             </p>
           </div>
 
           {/* Actions */}
-          {isMine ? (
+          {!user ? (
+            <Link to="/auth">
+              <Button variant="hero" size="lg" className="w-full">
+                <LogIn className="size-4" /> Inicia sesión para conquistar
+              </Button>
+            </Link>
+          ) : isMine ? (
             <div className="space-y-3">
-              <Button onClick={handleCheckIn} variant="hero" size="lg" className="w-full">
+              <Button onClick={handleCheckIn} variant="hero" size="lg" className="w-full" disabled={checkIn.isPending}>
                 <Calendar className="size-4" /> Registrar día de trabajo
               </Button>
-              <CleanupForm kilos={kilos} setKilos={setKilos} onSubmit={handleReport} />
+              <CleanupForm kilos={kilos} setKilos={setKilos} onSubmit={handleReport} loading={report.isPending} />
             </div>
           ) : (
             <div className="space-y-3">
@@ -157,7 +166,7 @@ export const ZoneSheet = ({ zone, onClose }: { zone: BeachZone | null; onClose: 
                 variant={verdict.canTake ? "hero" : "outline"}
                 size="lg"
                 className="w-full"
-                disabled={!verdict.canTake}
+                disabled={!verdict.canTake || conquer.isPending}
               >
                 <Flag className="size-4" />
                 {owner ? "Conquistar territorio" : "Reclamar zona libre"}
@@ -176,14 +185,8 @@ export const ZoneSheet = ({ zone, onClose }: { zone: BeachZone | null; onClose: 
 };
 
 const CleanupForm = ({
-  kilos,
-  setKilos,
-  onSubmit,
-}: {
-  kilos: string;
-  setKilos: (v: string) => void;
-  onSubmit: () => void;
-}) => (
+  kilos, setKilos, onSubmit, loading,
+}: { kilos: string; setKilos: (v: string) => void; onSubmit: () => void; loading: boolean }) => (
   <div className="glass-card rounded-2xl p-4 space-y-3">
     <Label className="text-xs font-bold uppercase tracking-widest text-deep">
       Reportar limpieza
@@ -197,12 +200,10 @@ const CleanupForm = ({
         onChange={(e) => setKilos(e.target.value)}
         className="rounded-2xl"
       />
-      <Button onClick={onSubmit} variant="sea">
+      <Button onClick={onSubmit} variant="sea" disabled={loading}>
         Sumar
       </Button>
     </div>
-    <p className="text-[11px] text-muted-foreground">
-      Cada kilo cuenta hacia tu poder de conquista.
-    </p>
+    <p className="text-[11px] text-muted-foreground">Cada kilo cuenta hacia tu poder de conquista.</p>
   </div>
 );

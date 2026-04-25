@@ -1,32 +1,30 @@
-import { useMarvi } from "@/lib/marvi-store";
 import { Trophy, Waves, MapPinned } from "lucide-react";
+import { useMyProfile, useZones, useGuardians } from "@/lib/marvi-queries";
+import { useAuth } from "@/hooks/useAuth";
 
 export const StatsBar = () => {
-  const me = useMarvi((s) => s.me());
-  const zones = useMarvi((s) => s.zones);
-  const meters = zones.filter((z) => z.guardianId === me.id).reduce((acc, z) => acc + z.meters, 0);
+  const { user } = useAuth();
+  const { data: me } = useMyProfile();
+  const { data: zones } = useZones();
+  const { data: guardians } = useGuardians();
+
+  const meters = zones?.filter((z) => z.guardian_id === user?.id).reduce((a, z) => a + z.meters, 0) ?? 0;
+  const totalTons = me?.total_tons ?? 0;
+  const rank = guardians ? guardians.findIndex((g) => g.id === user?.id) + 1 : 0;
 
   return (
     <div className="grid grid-cols-3 gap-2 md:gap-3">
-      <Stat icon={Waves} label="Recolectado" value={`${me.totalTons.toFixed(2)}`} unit="t" tone="sea" />
-      <Stat icon={MapPinned} label="Territorio" value={meters.toLocaleString()} unit="m²" tone="eco" />
-      <Stat icon={Trophy} label="Ranking" value={`#${me.rank}`} unit="" tone="gold" />
+      <Stat icon={Waves} label="Recolectado" value={Number(totalTons).toFixed(2)} unit="t" tone="sea" />
+      <Stat icon={MapPinned} label="Territorio" value={meters.toLocaleString()} unit="m" tone="eco" />
+      <Stat icon={Trophy} label="Ranking" value={rank > 0 ? `#${rank}` : "—"} unit="" tone="gold" />
     </div>
   );
 };
 
 const Stat = ({
-  icon: Icon,
-  label,
-  value,
-  unit,
-  tone,
+  icon: Icon, label, value, unit, tone,
 }: {
-  icon: typeof Trophy;
-  label: string;
-  value: string;
-  unit: string;
-  tone: "sea" | "eco" | "gold";
+  icon: typeof Trophy; label: string; value: string; unit: string; tone: "sea" | "eco" | "gold";
 }) => {
   const ring =
     tone === "sea" ? "from-sea/15 to-primary/10 text-primary" :

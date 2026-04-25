@@ -1,15 +1,23 @@
-import { useMarvi } from "@/lib/marvi-store";
 import { Calendar, Flame, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useMyProfile, useGuardians } from "@/lib/marvi-queries";
+import { useAuth } from "@/hooks/useAuth";
+
+// Static live event metadata
+const LIVE_EVENT = {
+  name: "Reto Limpia-Playa Tayrona",
+  description: "Conquista la mayor cantidad de zonas posibles en 72 horas. ¡Patrocinado por Eco-Sud!",
+  prize: "$1,200 USD + kit",
+  endsAt: new Date(Date.now() + 1000 * 60 * 60 * 72).toISOString(),
+};
 
 export const MissionPanel = () => {
-  const events = useMarvi((s) => s.events);
-  const liveEvent = events.find((e) => e.status === "live");
-  const me = useMarvi((s) => s.me());
-
-  if (!liveEvent) return null;
-  const remaining = useCountdown(liveEvent.endsAt);
+  const remaining = useCountdown(LIVE_EVENT.endsAt);
+  const { user } = useAuth();
+  const { data: me } = useMyProfile();
+  const { data: guardians } = useGuardians();
+  const rank = guardians ? guardians.findIndex((g) => g.id === user?.id) + 1 : 0;
 
   return (
     <div className="glass-card rounded-4xl p-5 border-l-4 border-l-sea">
@@ -22,18 +30,14 @@ export const MissionPanel = () => {
           <p className="text-sm font-bold tabular-nums text-coral font-display">{remaining}</p>
         </div>
       </div>
-      <h3 className="font-display text-xl font-bold text-deep leading-tight mb-1">
-        {liveEvent.name}
-      </h3>
-      <p className="text-sm text-muted-foreground mb-4">{liveEvent.description}</p>
+      <h3 className="font-display text-xl font-bold text-deep leading-tight mb-1">{LIVE_EVENT.name}</h3>
+      <p className="text-sm text-muted-foreground mb-4">{LIVE_EVENT.description}</p>
       <div className="grid grid-cols-2 gap-2 mb-4">
-        <Mini icon={Trophy} label="Premio" value={liveEvent.prize} />
-        <Mini icon={Calendar} label="Tu rango" value={`#${me.rank}`} />
+        <Mini icon={Trophy} label="Premio" value={LIVE_EVENT.prize} />
+        <Mini icon={Calendar} label="Tu rango" value={rank > 0 ? `#${rank}` : me ? "—" : "Iniciar sesión"} />
       </div>
       <Link to="/eventos">
-        <Button variant="hero" className="w-full">
-          Ver torneo completo
-        </Button>
+        <Button variant="hero" className="w-full">Ver torneo completo</Button>
       </Link>
     </div>
   );

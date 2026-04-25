@@ -159,6 +159,13 @@
   .ripple:hover::after { opacity: 1; }
 }
 
+/* Leaflet: keep map tiles below floating UI (nav at z-40) */
+.leaflet-container { z-index: 0; }
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom { z-index: 30 !important; }
+.leaflet-tooltip { z-index: 35 !important; }
+
 @layer utilities {
   .animate-float { animation: float 6s ease-in-out infinite; }
   .animate-pulse-glow { animation: pulse-glow 2.4s ease-in-out infinite; }

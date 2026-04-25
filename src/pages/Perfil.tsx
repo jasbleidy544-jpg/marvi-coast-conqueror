@@ -1,21 +1,32 @@
 import { AppShell } from "@/components/marvi/AppShell";
-import { useMarvi } from "@/lib/marvi-store";
 import { StatsBar } from "@/components/marvi/StatsBar";
-import { Award, MapPinned, Sparkles, Crown, Shield, Waves } from "lucide-react";
+import { Award, MapPinned, Sparkles, Crown, Shield, Waves, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const badges = [
-  { icon: Crown, label: "Defensor de la Bahía", earned: true, tone: "sea" },
-  { icon: Shield, label: "Centinela 7 días", earned: true, tone: "eco" },
-  { icon: Waves, label: "Mil kilos", earned: true, tone: "sea" },
-  { icon: Sparkles, label: "Rey de la Costa", earned: false, tone: "gold" },
-  { icon: MapPinned, label: "10 zonas", earned: false, tone: "eco" },
-  { icon: Award, label: "Patrocinado", earned: false, tone: "gold" },
-];
+import { useMyProfile, useZones } from "@/lib/marvi-queries";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const Perfil = () => {
-  const me = useMarvi((s) => s.me());
-  const zones = useMarvi((s) => s.zones).filter((z) => z.guardianId === me.id);
+  const { user, signOut } = useAuth();
+  const { data: me } = useMyProfile();
+  const { data: zones } = useZones();
+  const navigate = useNavigate();
+
+  const myZones = zones?.filter((z) => z.guardian_id === user?.id) ?? [];
+  const tons = Number(me?.total_tons ?? 0);
+
+  const badges = [
+    { icon: Crown, label: "Defensor de la Bahía", earned: myZones.length >= 1, tone: "sea" },
+    { icon: Shield, label: "Centinela 7 días", earned: myZones.some((z) => z.streak >= 7), tone: "eco" },
+    { icon: Waves, label: "Mil kilos", earned: tons >= 1, tone: "sea" },
+    { icon: Sparkles, label: "Rey de la Costa", earned: tons >= 10, tone: "gold" },
+    { icon: MapPinned, label: "10 zonas", earned: myZones.length >= 10, tone: "eco" },
+    { icon: Award, label: "Patrocinado", earned: !!me?.brand_name, tone: "gold" },
+  ];
+
+  const initials = me?.display_name?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() ?? "??";
 
   return (
     <AppShell>
@@ -24,15 +35,21 @@ const Perfil = () => {
           <div className="absolute inset-0 bg-gradient-sea opacity-10" />
           <div className="relative flex flex-col md:flex-row items-center gap-5">
             <div className="size-24 rounded-3xl bg-gradient-sea grid place-items-center text-white font-display font-bold text-3xl shadow-glow">
-              {me.name.slice(0, 2).toUpperCase()}
+              {initials}
             </div>
             <div className="text-center md:text-left flex-1">
-              <h1 className="font-display text-3xl font-bold text-deep">{me.name}</h1>
-              <p className="text-muted-foreground">{me.handle}</p>
+              <h1 className="font-display text-3xl font-bold text-deep">{me?.display_name ?? "Guardián"}</h1>
+              <p className="text-muted-foreground">{me?.handle ?? user?.email}</p>
               <div className="mt-2 inline-flex items-center gap-1.5 bg-gold/20 text-deep px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
-                <Crown className="size-3.5" /> {me.badge}
+                <Crown className="size-3.5" /> {me?.badge ?? "Aprendiz del Mar"}
               </div>
             </div>
+            <Button
+              variant="outline"
+              onClick={async () => { await signOut(); toast.success("Hasta pronto."); navigate("/"); }}
+            >
+              <LogOut className="size-4" /> Salir
+            </Button>
           </div>
         </div>
 
@@ -70,13 +87,13 @@ const Perfil = () => {
 
         <section className="glass-card rounded-4xl p-5">
           <h2 className="font-display font-bold text-deep mb-4 flex items-center gap-2">
-            <MapPinned className="size-4 text-primary" /> Mis territorios ({zones.length})
+            <MapPinned className="size-4 text-primary" /> Mis territorios ({myZones.length})
           </h2>
           <div className="space-y-2">
-            {zones.length === 0 && (
+            {myZones.length === 0 && (
               <p className="text-sm text-muted-foreground italic">Aún no has conquistado zonas. Ve al mapa y reclama una.</p>
             )}
-            {zones.map((z) => (
+            {myZones.map((z) => (
               <div key={z.id} className="flex items-center justify-between p-3 bg-white/60 rounded-2xl">
                 <div>
                   <p className="font-bold text-deep">{z.name}</p>

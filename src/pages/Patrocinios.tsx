@@ -1,5 +1,5 @@
 import { AppShell } from "@/components/marvi/AppShell";
-import { useGuardians, useAdoptGuardian, useSponsorAdoptions } from "@/lib/marvi-queries";
+import { useGuardians, useAdoptGuardian, useSponsorAdoptions, type AdoptionWithProfiles } from "@/lib/marvi-queries";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyProfile } from "@/lib/marvi-queries";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ const Patrocinios = () => {
     .slice(0, 4);
 
   const adoptionsByGuardian = new Map<string, string[]>();
-  adoptions?.forEach((a: { guardian_id: string; sponsor: { brand_name?: string | null; display_name: string } | null }) => {
+  adoptions?.forEach((a: AdoptionWithProfiles) => {
     const list = adoptionsByGuardian.get(a.guardian_id) ?? [];
     list.push(a.sponsor?.brand_name ?? a.sponsor?.display_name ?? "Marca");
     adoptionsByGuardian.set(a.guardian_id, list);
@@ -139,7 +139,7 @@ const Patrocinios = () => {
             </p>
           ) : (
             <div className="grid md:grid-cols-2 gap-3">
-              {adoptions?.map((a: { id: string; sponsor: { display_name: string; brand_name?: string | null; brand_tagline?: string | null } | null; guardian: { display_name: string; total_tons: number } | null }) => (
+              {adoptions?.map((a: AdoptionWithProfiles) => (
                 <div key={a.id} className="glass-card rounded-3xl p-4 flex items-center gap-3">
                   <div className="size-12 rounded-2xl bg-gradient-coral grid place-items-center text-white font-display font-bold">
                     {(a.sponsor?.brand_name ?? a.sponsor?.display_name ?? "??").slice(0, 2).toUpperCase()}

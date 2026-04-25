@@ -48,15 +48,37 @@ export const useMyProfile = () => {
   });
 };
 
+export interface AdoptionWithProfiles {
+  id: string;
+  sponsor_id: string;
+  guardian_id: string;
+  message: string | null;
+  sponsor: Profile | null;
+  guardian: Profile | null;
+}
+
 export const useSponsorAdoptions = () =>
   useQuery({
     queryKey: ["adoptions"],
-    queryFn: async () => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<AdoptionWithProfiles[]> => {
+      const { data: rows, error } = await supabase
         .from("sponsor_adoptions")
-        .select("*, sponsor:profiles!sponsor_adoptions_sponsor_id_fkey(*), guardian:profiles!sponsor_adoptions_guardian_id_fkey(*)");
+        .select("id, sponsor_id, guardian_id, message");
       if (error) throw error;
-      return data;
+      if (!rows?.length) return [];
+
+      const ids = Array.from(new Set(rows.flatMap((r) => [r.sponsor_id, r.guardian_id])));
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("*")
+        .in("id", ids);
+      const map = new Map((profiles ?? []).map((p) => [p.id, p as Profile]));
+
+      return rows.map((r) => ({
+        ...r,
+        sponsor: map.get(r.sponsor_id) ?? null,
+        guardian: map.get(r.guardian_id) ?? null,
+      }));
     },
   });
 

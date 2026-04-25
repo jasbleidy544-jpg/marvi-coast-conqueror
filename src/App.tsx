@@ -3,7 +3,10 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/marvi/ProtectedRoute";
 import Index from "./pages/Index.tsx";
+import Auth from "./pages/Auth.tsx";
 import Ranking from "./pages/Ranking.tsx";
 import Eventos from "./pages/Eventos.tsx";
 import Reportar from "./pages/Reportar.tsx";
@@ -19,15 +22,18 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/ranking" element={<Ranking />} />
-          <Route path="/eventos" element={<Eventos />} />
-          <Route path="/reportar" element={<Reportar />} />
-          <Route path="/patrocinios" element={<Patrocinios />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/ranking" element={<Ranking />} />
+            <Route path="/eventos" element={<Eventos />} />
+            <Route path="/patrocinios" element={<Patrocinios />} />
+            <Route path="/reportar" element={<ProtectedRoute><Reportar /></ProtectedRoute>} />
+            <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

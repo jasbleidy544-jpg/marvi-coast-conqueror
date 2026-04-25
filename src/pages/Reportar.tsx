@@ -1,42 +1,60 @@
 import { useState } from "react";
 import { AppShell } from "@/components/marvi/AppShell";
-import { useMarvi } from "@/lib/marvi-store";
+import { useZones, useReportCleanup, useUploadReportPhoto } from "@/lib/marvi-queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, FileText, Trash2 } from "lucide-react";
+import { Camera, FileText, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Reportar = () => {
-  const zones = useMarvi((s) => s.zones);
-  const reportCleanup = useMarvi((s) => s.reportCleanup);
-  const [zoneId, setZoneId] = useState(zones[0]?.id ?? "");
+  const { data: zones } = useZones();
+  const report = useReportCleanup();
+  const uploadPhoto = useUploadReportPhoto();
+  const [zoneId, setZoneId] = useState("");
   const [kilos, setKilos] = useState("");
   const [notes, setNotes] = useState("");
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  // Set default zone once data arrives
+  if (!zoneId && zones?.length) setZoneId(zones[0].id);
 
   const onPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setPhotoFile(file);
     const reader = new FileReader();
-    reader.onload = (ev) => setPhoto(String(ev.target?.result));
+    reader.onload = (ev) => setPhotoPreview(String(ev.target?.result));
     reader.readAsDataURL(file);
   };
 
-  const submit = () => {
+  const submit = async () => {
     const k = Number(kilos);
     if (!zoneId) return toast.error("Selecciona una zona.");
-    const r = reportCleanup(zoneId, k);
+    if (k <= 0) return toast.error("Ingresa los kilos recolectados.");
+
+    let photoUrl: string | undefined;
+    if (photoFile) {
+      try {
+        const url = await uploadPhoto.mutateAsync(photoFile);
+        photoUrl = url ?? undefined;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Error subiendo foto";
+        toast.error(msg);
+        return;
+      }
+    }
+
+    const r = await report.mutateAsync({ zoneId, kilos: k, notes, photoUrl });
     if (r.ok) {
       toast.success(r.message);
-      setKilos("");
-      setNotes("");
-      setPhoto(null);
-    } else {
-      toast.error(r.message);
-    }
+      setKilos(""); setNotes(""); setPhotoFile(null); setPhotoPreview(null);
+    } else toast.error(r.message);
   };
+
+  const loading = report.isPending || uploadPhoto.isPending;
 
   return (
     <AppShell>
@@ -59,7 +77,7 @@ const Reportar = () => {
               onChange={(e) => setZoneId(e.target.value)}
               className="w-full h-12 rounded-2xl bg-background border border-input px-4 text-sm font-medium"
             >
-              {zones.map((z) => (
+              {zones?.map((z) => (
                 <option key={z.id} value={z.id}>
                   {z.name} · {z.meters}m
                 </option>
@@ -84,8 +102,8 @@ const Reportar = () => {
             <label className="block">
               <input type="file" accept="image/*" onChange={onPhoto} className="hidden" />
               <div className="border-2 border-dashed border-border rounded-3xl p-6 text-center cursor-pointer hover:bg-white/40 transition-colors">
-                {photo ? (
-                  <img src={photo} alt="Evidencia" className="max-h-48 mx-auto rounded-2xl" />
+                {photoPreview ? (
+                  <img src={photoPreview} alt="Evidencia" className="max-h-48 mx-auto rounded-2xl" />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <Camera className="size-8" />
@@ -106,8 +124,9 @@ const Reportar = () => {
             />
           </div>
 
-          <Button onClick={submit} variant="hero" size="xl" className="w-full">
-            <Trash2 className="size-4" /> Enviar reporte
+          <Button onClick={submit} variant="hero" size="xl" className="w-full" disabled={loading}>
+            {loading ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+            {loading ? "Enviando…" : "Enviar reporte"}
           </Button>
         </div>
       </div>

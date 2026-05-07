@@ -29,15 +29,24 @@ const Auth = () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      if (error.message.toLowerCase().includes("email not confirmed")) {
+        return toast.error("Tu correo aún no está confirmado. Intenta crear la cuenta de nuevo o contacta soporte.");
+      }
+      if (error.message.toLowerCase().includes("invalid login")) {
+        return toast.error("Correo o contraseña incorrectos.");
+      }
+      return toast.error(error.message);
+    }
     toast.success("¡Bienvenido de vuelta, guardián!");
     navigate("/", { replace: true });
   };
 
   const signUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password.length < 6) return toast.error("La contraseña debe tener al menos 6 caracteres.");
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -50,8 +59,22 @@ const Auth = () => {
         },
       },
     });
+    if (error) {
+      setLoading(false);
+      if (error.message.toLowerCase().includes("already registered") || error.message.toLowerCase().includes("user already")) {
+        return toast.error("Ese correo ya está registrado. Intenta iniciar sesión.");
+      }
+      return toast.error(error.message);
+    }
+    // If no session returned (older accounts pending confirmation), force sign-in
+    if (!data.session) {
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInErr) {
+        setLoading(false);
+        return toast.error("Cuenta creada. Inicia sesión para continuar.");
+      }
+    }
     setLoading(false);
-    if (error) return toast.error(error.message);
     toast.success("¡Cuenta creada! Ya puedes empezar a conquistar la costa.");
     navigate("/", { replace: true });
   };

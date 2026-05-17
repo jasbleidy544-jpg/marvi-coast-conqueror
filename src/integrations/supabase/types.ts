@@ -243,7 +243,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_in_zone: { Args: { _zone_id: string }; Returns: Json }
+      check_in_zone: {
+        Args: { _lat?: number; _lng?: number; _zone_id: string }
+        Returns: Json
+      }
       conquer_zone: { Args: { _zone_id: string }; Returns: Json }
       has_role: {
         Args: {
@@ -252,9 +255,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      haversine_m: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
       report_cleanup: {
         Args: {
           _kilos: number
+          _lat?: number
+          _lng?: number
           _notes: string
           _photo_url: string
           _zone_id: string

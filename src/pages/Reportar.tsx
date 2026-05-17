@@ -1,56 +1,89 @@
 import { useState } from "react";
 import { AppShell } from "@/components/marvi/AppShell";
-import { useZones, useReportCleanup, useUploadReportPhoto } from "@/lib/marvi-queries";
+import { useZones, useReportCleanup, useUploadReportPhoto, useAnalyzeWastePhoto, type WasteAnalysis } from "@/lib/marvi-queries";
+import { getCurrentPosition } from "@/hooks/useGeolocation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, FileText, Trash2, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Camera, FileText, Trash2, Loader2, Sparkles, AlertTriangle, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 const Reportar = () => {
   const { data: zones } = useZones();
   const report = useReportCleanup();
   const uploadPhoto = useUploadReportPhoto();
+  const analyze = useAnalyzeWastePhoto();
   const [zoneId, setZoneId] = useState("");
   const [kilos, setKilos] = useState("");
   const [notes, setNotes] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<WasteAnalysis | null>(null);
 
-  // Set default zone once data arrives
   if (!zoneId && zones?.length) setZoneId(zones[0].id);
 
-  const onPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setPhotoFile(file);
+    setAnalysis(null);
     const reader = new FileReader();
-    reader.onload = (ev) => setPhotoPreview(String(ev.target?.result));
+    reader.onload = async (ev) => {
+      const dataUrl = String(ev.target?.result);
+      setPhotoPreview(dataUrl);
+      try {
+        const r = await analyze.mutateAsync({ imageBase64: dataUrl });
+        setAnalysis(r);
+        if (r.is_ai_generated && r.ai_confidence >= 0.6) {
+          toast.error("⚠️ La imagen parece generada por IA. No se aceptará.");
+        } else if (!r.is_waste_scene) {
+          toast.warning("No se detectaron residuos en la foto.");
+        } else {
+          setKilos(r.estimated_kilos.toFixed(2));
+          toast.success(`IA estimó ${r.estimated_kilos.toFixed(1)} kg en ${r.area_m2.toFixed(1)} m².`);
+        }
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Error al analizar foto.");
+      }
+    };
     reader.readAsDataURL(file);
   };
+
+  const aiBlocked = analysis?.is_ai_generated && (analysis.ai_confidence ?? 0) >= 0.6;
+  const notWaste = analysis && !analysis.is_waste_scene;
 
   const submit = async () => {
     const k = Number(kilos);
     if (!zoneId) return toast.error("Selecciona una zona.");
     if (k <= 0) return toast.error("Ingresa los kilos recolectados.");
+    if (!photoFile) return toast.error("Adjunta una foto de evidencia.");
+    if (aiBlocked) return toast.error("La foto fue detectada como generada por IA.");
+    if (notWaste) return toast.error("La foto no muestra residuos.");
 
-    let photoUrl: string | undefined;
-    if (photoFile) {
-      try {
-        const url = await uploadPhoto.mutateAsync(photoFile);
-        photoUrl = url ?? undefined;
-      } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : "Error subiendo foto";
-        toast.error(msg);
-        return;
-      }
+    let coords: { lat: number; lng: number };
+    try {
+      const pos = await getCurrentPosition();
+      coords = { lat: pos.lat, lng: pos.lng };
+    } catch (e) {
+      return toast.error(e instanceof Error ? e.message : "GPS requerido.");
     }
 
-    const r = await report.mutateAsync({ zoneId, kilos: k, notes, photoUrl });
+    let photoUrl: string | undefined;
+    try {
+      const url = await uploadPhoto.mutateAsync(photoFile);
+      photoUrl = url ?? undefined;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Error subiendo foto";
+      toast.error(msg);
+      return;
+    }
+
+    const r = await report.mutateAsync({ zoneId, kilos: k, notes, photoUrl, lat: coords.lat, lng: coords.lng });
     if (r.ok) {
       toast.success(r.message);
-      setKilos(""); setNotes(""); setPhotoFile(null); setPhotoPreview(null);
+      setKilos(""); setNotes(""); setPhotoFile(null); setPhotoPreview(null); setAnalysis(null);
     } else toast.error(r.message);
   };
 
@@ -65,7 +98,7 @@ const Reportar = () => {
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold text-deep">Registra tu jornada</h1>
           <p className="text-muted-foreground mt-2">
-            Sube evidencia y los kilos recolectados. Cada gramo cuenta para tu poder de conquista.
+            Adjunta la foto, la IA estima los kilos y verifica que sea real. El GPS confirma que estás en la zona.
           </p>
         </header>
 
@@ -83,10 +116,70 @@ const Reportar = () => {
                 </option>
               ))}
             </select>
+            <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <MapPin className="size-3" /> Debes estar físicamente en la zona (máx 500 m).
+            </p>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-widest text-deep">Kilos recolectados</Label>
+            <Label className="text-xs font-bold uppercase tracking-widest text-deep">Foto de evidencia</Label>
+            <label className="block">
+              <input type="file" accept="image/*" capture="environment" onChange={onPhoto} className="hidden" />
+              <div className="border-2 border-dashed border-border rounded-3xl p-6 text-center cursor-pointer hover:bg-white/40 transition-colors">
+                {photoPreview ? (
+                  <img src={photoPreview} alt="Evidencia" className="max-h-48 mx-auto rounded-2xl" />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Camera className="size-8" />
+                    <p className="text-sm font-medium">Toca para tomar/subir foto</p>
+                  </div>
+                )}
+              </div>
+            </label>
+
+            {analyze.isPending && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="size-3 animate-spin" /> Analizando imagen con IA…
+              </div>
+            )}
+
+            {analysis && (
+              <div
+                className={`rounded-2xl p-3 text-xs space-y-1 border ${
+                  aiBlocked ? "bg-coral/15 border-coral text-deep" :
+                  notWaste ? "bg-gold/15 border-gold text-deep" :
+                  "bg-eco/10 border-eco/40 text-deep"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 font-bold">
+                  {aiBlocked ? <AlertTriangle className="size-3.5" /> : <Sparkles className="size-3.5" />}
+                  {aiBlocked ? "Imagen generada por IA detectada" :
+                   notWaste ? "No se detectaron residuos" :
+                   "Análisis IA"}
+                </div>
+                {!aiBlocked && !notWaste && (
+                  <>
+                    <p>Peso estimado: <b>{analysis.estimated_kilos.toFixed(2)} kg</b></p>
+                    <p>Área: <b>{analysis.area_m2.toFixed(2)} m²</b> · Volumen: <b>{analysis.volume_m3.toFixed(3)} m³</b></p>
+                    {analysis.waste_types?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {analysis.waste_types.map((t) => (
+                          <Badge key={t} variant="secondary" className="text-[10px]">{t}</Badge>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+                {analysis.description && <p className="italic opacity-80">{analysis.description}</p>}
+                {analysis.reason && <p className="opacity-70">{analysis.reason}</p>}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest text-deep">
+              Kilos recolectados {analysis && !aiBlocked && !notWaste && <span className="text-eco">(autollenado por IA, puedes ajustar)</span>}
+            </Label>
             <Input
               type="number"
               inputMode="decimal"
@@ -95,23 +188,6 @@ const Reportar = () => {
               onChange={(e) => setKilos(e.target.value)}
               className="h-12 rounded-2xl text-lg font-display"
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-widest text-deep">Foto de evidencia</Label>
-            <label className="block">
-              <input type="file" accept="image/*" onChange={onPhoto} className="hidden" />
-              <div className="border-2 border-dashed border-border rounded-3xl p-6 text-center cursor-pointer hover:bg-white/40 transition-colors">
-                {photoPreview ? (
-                  <img src={photoPreview} alt="Evidencia" className="max-h-48 mx-auto rounded-2xl" />
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <Camera className="size-8" />
-                    <p className="text-sm font-medium">Toca para subir foto</p>
-                  </div>
-                )}
-              </div>
-            </label>
           </div>
 
           <div className="space-y-2">
@@ -124,7 +200,7 @@ const Reportar = () => {
             />
           </div>
 
-          <Button onClick={submit} variant="hero" size="xl" className="w-full" disabled={loading}>
+          <Button onClick={submit} variant="hero" size="xl" className="w-full" disabled={loading || aiBlocked || notWaste || analyze.isPending}>
             {loading ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
             {loading ? "Enviando…" : "Enviar reporte"}
           </Button>

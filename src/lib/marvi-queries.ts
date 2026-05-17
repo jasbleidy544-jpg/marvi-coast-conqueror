@@ -108,12 +108,16 @@ export const useReportCleanup = () => {
       kilos: number;
       notes?: string;
       photoUrl?: string;
+      lat: number;
+      lng: number;
     }) => {
       const { data, error } = await supabase.rpc("report_cleanup", {
         _zone_id: vars.zoneId,
         _kilos: vars.kilos,
         _notes: vars.notes ?? null,
         _photo_url: vars.photoUrl ?? null,
+        _lat: vars.lat,
+        _lng: vars.lng,
       });
       if (error) throw error;
       return data as { ok: boolean; message: string };
@@ -129,8 +133,12 @@ export const useReportCleanup = () => {
 export const useCheckIn = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (zoneId: string) => {
-      const { data, error } = await supabase.rpc("check_in_zone", { _zone_id: zoneId });
+    mutationFn: async (vars: { zoneId: string; lat: number; lng: number }) => {
+      const { data, error } = await supabase.rpc("check_in_zone", {
+        _zone_id: vars.zoneId,
+        _lat: vars.lat,
+        _lng: vars.lng,
+      });
       if (error) throw error;
       return data as { ok: boolean; message: string };
     },
@@ -139,6 +147,30 @@ export const useCheckIn = () => {
     },
   });
 };
+
+export interface WasteAnalysis {
+  is_ai_generated: boolean;
+  ai_confidence: number;
+  is_waste_scene: boolean;
+  estimated_kilos: number;
+  area_m2: number;
+  volume_m3: number;
+  waste_types: string[];
+  description: string;
+  reason?: string;
+}
+
+export const useAnalyzeWastePhoto = () =>
+  useMutation({
+    mutationFn: async (vars: { imageUrl?: string; imageBase64?: string }): Promise<WasteAnalysis> => {
+      const { data, error } = await supabase.functions.invoke("analyze-waste-photo", {
+        body: { image_url: vars.imageUrl, image_base64: vars.imageBase64 },
+      });
+      if (error) throw error;
+      if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+      return data as WasteAnalysis;
+    },
+  });
 
 export const useAdoptGuardian = () => {
   const { user } = useAuth();

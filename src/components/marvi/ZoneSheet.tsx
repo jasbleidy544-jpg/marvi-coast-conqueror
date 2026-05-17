@@ -38,15 +38,25 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
   const handleReport = async () => {
     const k = Number(kilos);
     if (k <= 0) return toast.error("Indica una cantidad válida.");
-    const r = await report.mutateAsync({ zoneId: zone.id, kilos: k });
-    if (r.ok) { toast.success(r.message); setKilos(""); }
-    else toast.error(r.message);
+    try {
+      const pos = await getCurrentPosition();
+      const r = await report.mutateAsync({ zoneId: zone.id, kilos: k, lat: pos.lat, lng: pos.lng });
+      if (r.ok) { toast.success(r.message); setKilos(""); }
+      else toast.error(r.message);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error de GPS");
+    }
   };
 
   const handleCheckIn = async () => {
-    const r = await checkIn.mutateAsync(zone.id);
-    if (r.ok) toast.success(r.message);
-    else toast.error(r.message);
+    try {
+      const pos = await getCurrentPosition();
+      const r = await checkIn.mutateAsync({ zoneId: zone.id, lat: pos.lat, lng: pos.lng });
+      if (r.ok) toast.success(r.message);
+      else toast.error(r.message);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Error de GPS");
+    }
   };
 
   return (

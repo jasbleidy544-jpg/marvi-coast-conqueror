@@ -1,43 +1,41 @@
-# Plan: Zonas de Santa Marta + filtro por tipo en el mapa
+## 1. Mapa libre con conquista por área
 
-## 1. Insertar zonas georreferenciadas (migración SQL `INSERT`)
+**Base de datos** (migración):
+- Borrar todas las filas de `zones`, `reports`, `check_ins` y `sponsor_adoptions` (limpieza total).
+- Adaptar tabla `zones` para que cualquier usuario pueda crear una zona conquistada:
+  - Cambiar `id` a `uuid default gen_random_uuid()`.
+  - Añadir columna `radius_m int not null default 200` (radio de protección del territorio).
+  - Política RLS de INSERT para `authenticated` (con `guardian_id = auth.uid()`).
+- Reemplazar la función `conquer_zone(_zone_id)` por:
+  - `claim_territory(_lat, _lng, _name, _radius_m default 200)` — valida que `auth.uid()` esté a menos de 100 m de las coordenadas (GPS real), rechaza si ya existe un territorio activo dentro del radio salvo que el retador tenga más toneladas que el dueño actual (en ese caso lo reemplaza), y devuelve el nuevo `zone_id`.
+- Ajustar `check_in_zone` y `report_cleanup` para usar el `radius_m` del territorio (no el fijo de 500 m).
 
-Agregaré ~30 zonas reales de Santa Marta a la tabla `zones`, distribuidas en los 3 tipos del enum `zone_kind`:
+**Frontend `ConquestMap.tsx`**:
+- Quitar los filtros costera/urbana/rural y la leyenda de formas.
+- Pintar cada territorio como un `<Circle>` con radio real (`zone.radius_m`) y color por estado (crítica/vulnerable/protegida) — sin pines centrales.
+- Mostrar un `Tooltip` permanente encima del círculo con el texto **"Guardián · <display_name>"**.
+- Añadir botón flotante **"Conquistar mi ubicación"**: pide GPS, abre un modal pequeño para ponerle nombre al territorio y llama a `claim_territory`. Al éxito, el círculo aparece con el nombre del nuevo guardián.
+- Click sobre cualquier círculo abre el `ZoneSheet` existente para check-in / reportar / retar.
 
-**Costeras (coastal)** — ~12
-- Playa Blanca, Playa Cristal, Neguanje, Cabo San Juan, Bahía Concha, Bonito Gordo, Inca Inca, Los Cocos, Playa Salguero, Pozos Colorados, Playa Grande, El Rodadero
+## 2. Fix del bug "no deja subir foto" en `Reportar.tsx`
 
-**Urbanas (urban)** — ~10
-- Centro Histórico, Bastidas, Pescaíto, Mamatoco, Manzanares, Gaira, Taganga (casco), Bonda, 11 de Noviembre, María Eugenia
-
-**Rurales (rural)** — ~8
-- Minca, Calabazo, Don Diego, Guachaca, Buritaca, Tigrera, La Tagua, Palomino (vía)
-
-Cada fila incluye `id` (slug), `name`, `kind`, `lat`, `lng`, `meters`, `status` inicial (mezcla `critical` / `vulnerable`), `hazard_level` y `description` corta para SEO/Google. Uso `INSERT ... ON CONFLICT (id) DO NOTHING` para no romper datos existentes.
-
-## 2. Filtro por tipo de zona en `ConquestMap`
-
-En `src/components/marvi/ConquestMap.tsx`:
-- Agregar estado `kindFilter: "all" | "coastal" | "urban" | "rural"`.
-- Botones tipo pill flotantes arriba del mapa (Todas / Costeras / Urbanas / Rurales) usando los estilos glass existentes.
-- Filtrar `zones` por `kindFilter` antes de renderizar los `CircleMarker`.
-- Diferenciar visualmente cada tipo:
-  - `coastal` → círculo (actual)
-  - `urban` → cuadrado (usar `Marker` con `divIcon` cuadrado)
-  - `rural` → triángulo/diamante (`divIcon`)
-- Color sigue indicando estado (crítica/vulnerable/protegida); la forma indica tipo.
-- Tooltip muestra también el tipo: `Costera · Crítica · 320m`.
-- Actualizar la leyenda para incluir las 3 formas + colores de estado.
+- Reemplazar el `<input>` oculto envuelto en `<label>` por dos botones explícitos:
+  - **"Tomar foto"** → input con `capture="environment"`.
+  - **"Subir desde galería"** → input sin `capture`.
+  El truco actual (label + capture) bloquea la galería en varios navegadores móviles y por eso "no pasa nada".
+- Manejar errores de la edge function de análisis sin bloquear el botón de enviar: si la IA falla por red/timeout, mostrar aviso pero permitir enviar igual (la validación GPS + foto sigue siendo obligatoria).
+- Añadir `console.error` y `toast` con el mensaje real de Supabase Storage para depurar si el bucket o las políticas fallan en producción.
 
 ## 3. Detalles técnicos
 
-- Migración: solo `INSERT` (sin cambios de schema). Coordenadas verificadas para Santa Marta (lat ~11.0–11.3, lng ~-74.4 a -73.6).
-- `divIcon` de Leaflet con HTML+Tailwind inline para las formas urbana/rural.
-- Sin cambios en RLS (ya permite SELECT público en `zones`).
-- Sin cambios en tipos (`marvi-types.ts` ya tiene `ZoneKind`).
+- Archivos modificados:
+  - `supabase/migrations/<nueva>.sql` (limpieza + claim_territory + radius).
+  - `src/components/marvi/ConquestMap.tsx` (círculos + tooltip permanente + botón conquistar).
+  - Nuevo `src/components/marvi/ClaimTerritoryDialog.tsx`.
+  - `src/lib/marvi-queries.ts` (hook `useClaimTerritory`, tipos).
+  - `src/pages/Reportar.tsx` (dos botones foto, manejo de errores).
+- Sin cambios en autenticación ni en el flujo de IA de detección de imágenes generadas.
 
-## 4. Resultado
+## Lo que NO se toca
 
-- El mapa de la Home muestra la red completa de zonas reales de Santa Marta.
-- El usuario puede filtrar por Costera / Urbana / Rural.
-- Las descripciones y nombres reales hacen que cada zona sea fácil de googlear.
+- Diseño visual general, racha de 7 días, ranking, panel de misiones, sistema de roles.

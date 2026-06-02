@@ -84,13 +84,18 @@ export const useSponsorAdoptions = () =>
 
 // ============ MUTATIONS ============
 
-export const useConquerZone = () => {
+export const useClaimTerritory = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (zoneId: string) => {
-      const { data, error } = await supabase.rpc("conquer_zone", { _zone_id: zoneId });
+    mutationFn: async (vars: { lat: number; lng: number; name: string; radiusM?: number }) => {
+      const { data, error } = await supabase.rpc("claim_territory", {
+        _lat: vars.lat,
+        _lng: vars.lng,
+        _name: vars.name,
+        _radius_m: vars.radiusM ?? 200,
+      });
       if (error) throw error;
-      return data as { ok: boolean; message: string };
+      return data as { ok: boolean; message: string; zone_id?: string };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["zones"] });

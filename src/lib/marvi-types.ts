@@ -17,6 +17,7 @@ export interface Zone {
   total_tons_collected: number;
   hazard_level: number;
   description: string | null;
+  radius_m: number;
 }
 
 export interface Profile {

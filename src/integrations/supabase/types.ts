@@ -190,6 +190,7 @@ export type Database = {
           lng: number
           meters: number
           name: string
+          radius_m: number
           status: Database["public"]["Enums"]["zone_status"]
           streak: number
           total_tons_collected: number
@@ -200,13 +201,14 @@ export type Database = {
           description?: string | null
           guardian_id?: string | null
           hazard_level?: number
-          id: string
+          id?: string
           kind?: Database["public"]["Enums"]["zone_kind"]
           last_visit?: string | null
           lat: number
           lng: number
           meters: number
           name: string
+          radius_m?: number
           status?: Database["public"]["Enums"]["zone_status"]
           streak?: number
           total_tons_collected?: number
@@ -224,6 +226,7 @@ export type Database = {
           lng?: number
           meters?: number
           name?: string
+          radius_m?: number
           status?: Database["public"]["Enums"]["zone_status"]
           streak?: number
           total_tons_collected?: number
@@ -245,6 +248,10 @@ export type Database = {
     Functions: {
       check_in_zone: {
         Args: { _lat?: number; _lng?: number; _zone_id: string }
+        Returns: Json
+      }
+      claim_territory: {
+        Args: { _lat: number; _lng: number; _name: string; _radius_m?: number }
         Returns: Json
       }
       conquer_zone: { Args: { _zone_id: string }; Returns: Json }

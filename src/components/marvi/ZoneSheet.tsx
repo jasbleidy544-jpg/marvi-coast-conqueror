@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Zone, statusLabel, statusColor, canConquer } from "@/lib/marvi-types";
-import { useGuardians, useMyProfile, useConquerZone, useReportCleanup, useCheckIn } from "@/lib/marvi-queries";
+import { useGuardians, useMyProfile, useClaimTerritory, useReportCleanup, useCheckIn } from "@/lib/marvi-queries";
 import { useAuth } from "@/hooks/useAuth";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
   const { user } = useAuth();
   const { data: guardians } = useGuardians();
   const { data: me } = useMyProfile();
-  const conquer = useConquerZone();
+  const claim = useClaimTerritory();
   const report = useReportCleanup();
   const checkIn = useCheckIn();
   const [kilos, setKilos] = useState("");
@@ -30,9 +30,19 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
   const verdict = canConquer(me?.total_tons ?? 0, owner?.total_tons ?? null, owner?.display_name ?? null, isMine);
 
   const handleConquer = async () => {
-    const r = await conquer.mutateAsync(zone.id);
-    if (r.ok) { toast.success(r.message); onClose(); }
-    else toast.error(r.message);
+    try {
+      const pos = await getCurrentPosition();
+      const r = await claim.mutateAsync({
+        lat: pos.lat,
+        lng: pos.lng,
+        name: zone.name,
+        radiusM: zone.radius_m,
+      });
+      if (r.ok) { toast.success(r.message); onClose(); }
+      else toast.error(r.message);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "GPS requerido para retar.");
+    }
   };
 
   const handleReport = async () => {
@@ -177,10 +187,10 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
                 variant={verdict.canTake ? "hero" : "outline"}
                 size="lg"
                 className="w-full"
-                disabled={!verdict.canTake || conquer.isPending}
+                disabled={!verdict.canTake || claim.isPending}
               >
                 <Flag className="size-4" />
-                {owner ? "Conquistar territorio" : "Reclamar zona libre"}
+                {owner ? "Retar (debes estar en el lugar)" : "Reclamar zona libre"}
               </Button>
               {!verdict.canTake && owner && (
                 <p className="text-xs text-center text-muted-foreground">

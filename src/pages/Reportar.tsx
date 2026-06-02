@@ -24,9 +24,7 @@ const Reportar = () => {
 
   if (!zoneId && zones?.length) setZoneId(zones[0].id);
 
-  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFile = async (file: File) => {
     setPhotoFile(file);
     setAnalysis(null);
     const reader = new FileReader();
@@ -45,10 +43,18 @@ const Reportar = () => {
           toast.success(`IA estimó ${r.estimated_kilos.toFixed(1)} kg en ${r.area_m2.toFixed(1)} m².`);
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Error al analizar foto.");
+        console.error("Análisis IA falló:", err);
+        toast.warning("No se pudo analizar con IA, pero puedes continuar manualmente.");
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const onPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    handleFile(file);
+    e.target.value = ""; // permite re-seleccionar el mismo archivo
   };
 
   const aiBlocked = analysis?.is_ai_generated && (analysis.ai_confidence ?? 0) >= 0.6;
@@ -123,19 +129,41 @@ const Reportar = () => {
 
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-widest text-deep">Foto de evidencia</Label>
-            <label className="block">
-              <input type="file" accept="image/*" capture="environment" onChange={onPhoto} className="hidden" />
-              <div className="border-2 border-dashed border-border rounded-3xl p-6 text-center cursor-pointer hover:bg-white/40 transition-colors">
-                {photoPreview ? (
-                  <img src={photoPreview} alt="Evidencia" className="max-h-48 mx-auto rounded-2xl" />
-                ) : (
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                    <Camera className="size-8" />
-                    <p className="text-sm font-medium">Toca para tomar/subir foto</p>
-                  </div>
-                )}
+            <div className="border-2 border-dashed border-border rounded-3xl p-6 text-center">
+              {photoPreview ? (
+                <img src={photoPreview} alt="Evidencia" className="max-h-48 mx-auto rounded-2xl mb-3" />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-muted-foreground mb-3">
+                  <Camera className="size-8" />
+                  <p className="text-sm font-medium">Toma una foto o súbela desde tu galería</p>
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                <Button asChild variant="sea" size="lg" type="button">
+                  <label className="cursor-pointer">
+                    <Camera className="size-4" /> Cámara
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={onPhoto}
+                      className="hidden"
+                    />
+                  </label>
+                </Button>
+                <Button asChild variant="outline" size="lg" type="button">
+                  <label className="cursor-pointer">
+                    <FileText className="size-4" /> Galería
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={onPhoto}
+                      className="hidden"
+                    />
+                  </label>
+                </Button>
               </div>
-            </label>
+            </div>
 
             {analyze.isPending && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">

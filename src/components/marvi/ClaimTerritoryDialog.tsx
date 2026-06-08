@@ -6,7 +6,15 @@ import { Label } from "@/components/ui/label";
 import { useClaimTerritory } from "@/lib/marvi-queries";
 import { getCurrentPosition } from "@/hooks/useGeolocation";
 import { toast } from "sonner";
-import { Flag, Loader2, MapPin } from "lucide-react";
+import { Building2, Flag, Loader2, MapPin, Trees, Waves } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type Kind = "coastal" | "urban" | "rural";
+const KINDS: { id: Kind; label: string; icon: typeof Waves; hint: string }[] = [
+  { id: "coastal", label: "Costera", icon: Waves, hint: "Playa, río, manglar" },
+  { id: "urban", label: "Urbana", icon: Building2, hint: "Calles, barrios, parques" },
+  { id: "rural", label: "Rural", icon: Trees, hint: "Sierra, vereda, finca" },
+];
 
 export const ClaimTerritoryDialog = ({
   open,

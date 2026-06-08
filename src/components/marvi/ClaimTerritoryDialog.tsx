@@ -103,6 +103,33 @@ export const ClaimTerritoryDialog = ({
           </div>
 
           <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-widest text-deep">Tipo de zona</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {KINDS.map((k) => {
+                const Icon = k.icon;
+                const active = kind === k.id;
+                return (
+                  <button
+                    key={k.id}
+                    type="button"
+                    onClick={() => setKind(k.id)}
+                    className={cn(
+                      "rounded-2xl border-2 p-3 text-left transition-all",
+                      active
+                        ? "border-primary bg-primary/10"
+                        : "border-border bg-background hover:border-primary/40",
+                    )}
+                  >
+                    <Icon className={cn("size-4 mb-1", active ? "text-primary" : "text-muted-foreground")} />
+                    <div className="text-sm font-bold text-deep">{k.label}</div>
+                    <div className="text-[10px] text-muted-foreground leading-tight">{k.hint}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-widest text-deep">
               Radio de protección (m)
             </Label>

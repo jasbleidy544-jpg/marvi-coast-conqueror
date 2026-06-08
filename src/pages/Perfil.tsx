@@ -19,7 +19,7 @@ const Perfil = () => {
 
   const badges = [
     { icon: Crown, label: "Defensor de la Bahía", earned: myZones.length >= 1, tone: "sea" },
-    { icon: Shield, label: "Centinela 7 días", earned: myZones.some((z) => z.streak >= 7), tone: "eco" },
+    { icon: Shield, label: "Guardián Oficial", earned: myZones.some((z) => z.streak >= 3), tone: "eco" },
     { icon: Waves, label: "Mil kilos", earned: tons >= 1, tone: "sea" },
     { icon: Sparkles, label: "Rey de la Costa", earned: tons >= 10, tone: "gold" },
     { icon: MapPinned, label: "10 zonas", earned: myZones.length >= 10, tone: "eco" },

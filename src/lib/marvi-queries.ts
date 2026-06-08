@@ -87,12 +87,13 @@ export const useSponsorAdoptions = () =>
 export const useClaimTerritory = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (vars: { lat: number; lng: number; name: string; radiusM?: number }) => {
+    mutationFn: async (vars: { lat: number; lng: number; name: string; radiusM?: number; kind?: "coastal" | "urban" | "rural" }) => {
       const { data, error } = await supabase.rpc("claim_territory", {
         _lat: vars.lat,
         _lng: vars.lng,
         _name: vars.name,
         _radius_m: vars.radiusM ?? 200,
+        _kind: vars.kind ?? "coastal",
       });
       if (error) throw error;
       return data as { ok: boolean; message: string; zone_id?: string };

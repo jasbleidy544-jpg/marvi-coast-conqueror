@@ -122,11 +122,11 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
           {/* Streak */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-deep">
-              <span className="flex items-center gap-1.5"><Calendar className="size-3.5" /> RACHA DE 7 DÍAS</span>
-              <span className="tabular-nums">{zone.streak}/7</span>
+              <span className="flex items-center gap-1.5"><Calendar className="size-3.5" /> RACHA DE 3 DÍAS</span>
+              <span className="tabular-nums">{Math.min(zone.streak, 3)}/3</span>
             </div>
             <div className="flex gap-1.5">
-              {Array.from({ length: 7 }).map((_, i) => (
+              {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
                   className={cn(
@@ -138,8 +138,8 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
             </div>
             <p className="text-xs text-muted-foreground">
               {zone.status === "protected"
-                ? "Zona blindada como Protegida."
-                : "Trabaja 7 días seguidos para protegerla. Si fallas, queda vulnerable."}
+                ? "Zona blindada como Protegida. Si la descuidas 3 días, alguien con más toneladas puede arrebatártela."
+                : "Trabaja 3 días seguidos para protegerla y ganar la insignia Guardián Oficial."}
             </p>
           </div>
 

@@ -19,7 +19,7 @@ const Perfil = () => {
 
   const badges = [
     { icon: Crown, label: "Defensor de la Bahía", earned: myZones.length >= 1, tone: "sea" },
-    { icon: Shield, label: "Centinela 7 días", earned: myZones.some((z) => z.streak >= 7), tone: "eco" },
+    { icon: Shield, label: "Guardián Oficial", earned: myZones.some((z) => z.streak >= 3), tone: "eco" },
     { icon: Waves, label: "Mil kilos", earned: tons >= 1, tone: "sea" },
     { icon: Sparkles, label: "Rey de la Costa", earned: tons >= 10, tone: "gold" },
     { icon: MapPinned, label: "10 zonas", earned: myZones.length >= 10, tone: "eco" },
@@ -97,7 +97,7 @@ const Perfil = () => {
               <div key={z.id} className="flex items-center justify-between p-3 bg-white/60 rounded-2xl">
                 <div>
                   <p className="font-bold text-deep">{z.name}</p>
-                  <p className="text-xs text-muted-foreground">{z.meters}m · racha {z.streak}/7</p>
+                  <p className="text-xs text-muted-foreground">{z.meters}m · racha {Math.min(z.streak, 3)}/3</p>
                 </div>
                 <span
                   className={cn(

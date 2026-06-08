@@ -6,9 +6,9 @@ import { useAuth } from "@/hooks/useAuth";
 
 // Static live event metadata
 const LIVE_EVENT = {
-  name: "Reto Limpia-Playa Tayrona",
-  description: "Conquista la mayor cantidad de zonas posibles en 72 horas. ¡Patrocinado por Eco-Sud!",
-  prize: "$1,200 USD + kit",
+  name: "Reto Bahía Limpia · Playa Blanca",
+  description: "72 h para conquistar la costa entre Playa Blanca y Bahía Concha. Patrocina Hotel Irotama Resort.",
+  prize: "$3.5M COP + fin de semana",
   endsAt: new Date(Date.now() + 1000 * 60 * 60 * 72).toISOString(),
 };
 

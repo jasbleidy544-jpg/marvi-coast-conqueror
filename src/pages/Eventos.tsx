@@ -79,7 +79,7 @@ const Eventos = () => (
         </div>
         <h1 className="font-display text-3xl md:text-4xl font-bold text-deep">Eventos especiales</h1>
         <p className="text-muted-foreground mt-2">
-          Retos reales con marcas, hoteles y fundaciones de la región Caribe. Inscripción gratuita; los premios se entregan en eventos presenciales con pesaje verificado.
+          Retos reales con marcas, hoteles y fundaciones de la región Caribe — costa, ciudad y sierra. Inscripción gratuita; los premios se entregan en eventos presenciales con pesaje verificado.
         </p>
       </header>
 

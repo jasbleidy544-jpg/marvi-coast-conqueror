@@ -26,6 +26,7 @@ export const ClaimTerritoryDialog = ({
   const claim = useClaimTerritory();
   const [name, setName] = useState("");
   const [radius, setRadius] = useState("200");
+  const [kind, setKind] = useState<Kind>("coastal");
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
 
@@ -50,6 +51,7 @@ export const ClaimTerritoryDialog = ({
       lng: coords.lng,
       name: name.trim(),
       radiusM: Number(radius) || 200,
+      kind,
     });
     if (r.ok) {
       toast.success(r.message);
@@ -69,7 +71,7 @@ export const ClaimTerritoryDialog = ({
             <Flag className="size-5 text-primary" /> Conquistar mi ubicación
           </DialogTitle>
           <DialogDescription>
-            Debes estar físicamente en el lugar. Tu GPS confirma la posición.
+            Sirve para playa, ciudad o campo. Tu GPS confirma que estás en el lugar.
           </DialogDescription>
         </DialogHeader>
 

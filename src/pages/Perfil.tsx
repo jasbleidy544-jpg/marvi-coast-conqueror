@@ -97,7 +97,7 @@ const Perfil = () => {
               <div key={z.id} className="flex items-center justify-between p-3 bg-white/60 rounded-2xl">
                 <div>
                   <p className="font-bold text-deep">{z.name}</p>
-                  <p className="text-xs text-muted-foreground">{z.meters}m · racha {z.streak}/7</p>
+                  <p className="text-xs text-muted-foreground">{z.meters}m · racha {Math.min(z.streak, 3)}/3</p>
                 </div>
                 <span
                   className={cn(

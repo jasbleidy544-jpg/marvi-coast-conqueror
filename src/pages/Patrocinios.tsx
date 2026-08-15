@@ -1,3 +1,4 @@
+import { fmtKg } from "@/lib/units";
 import { AppShell } from "@/components/marvi/AppShell";
 import { useGuardians, useAdoptGuardian, useSponsorAdoptions, type AdoptionWithProfiles } from "@/lib/marvi-queries";
 import { useAuth } from "@/hooks/useAuth";
@@ -102,7 +103,7 @@ const Patrocinios = () => {
                     <p className="font-bold text-deep truncate">{g.display_name}</p>
                     <p className="text-[11px] text-muted-foreground truncate mb-2">{g.badge}</p>
                     <div className="flex justify-between text-xs mb-2">
-                      <span className="text-primary font-bold">{Number(g.total_tons).toFixed(1)}t</span>
+                      <span className="text-primary font-bold">{fmtKg(g.total_tons)} kg</span>
                       <span className="text-muted-foreground">{g.zones_owned} zonas</span>
                     </div>
                     {sponsors && sponsors.length > 0 && (
@@ -148,7 +149,7 @@ const Patrocinios = () => {
                     <p className="font-bold text-deep truncate">{a.sponsor?.brand_name ?? a.sponsor?.display_name}</p>
                     <p className="text-xs text-muted-foreground truncate">
                       adoptó a <b className="text-primary">{a.guardian?.display_name}</b>
-                      {a.guardian && ` (${Number(a.guardian.total_tons).toFixed(2)}t)`}
+                      {a.guardian && ` (${fmtKg(a.guardian.total_tons)} kg)`}
                     </p>
                     {a.sponsor?.brand_tagline && (
                       <p className="text-[10px] text-muted-foreground italic truncate">"{a.sponsor.brand_tagline}"</p>

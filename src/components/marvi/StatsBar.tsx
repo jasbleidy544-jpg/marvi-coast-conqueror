@@ -1,6 +1,7 @@
 import { Trophy, Waves, MapPinned } from "lucide-react";
 import { useMyProfile, useZones, useGuardians } from "@/lib/marvi-queries";
 import { useAuth } from "@/hooks/useAuth";
+import { fmtKg } from "@/lib/units";
 
 export const StatsBar = () => {
   const { user } = useAuth();
@@ -14,7 +15,7 @@ export const StatsBar = () => {
 
   return (
     <div className="grid grid-cols-3 gap-2 md:gap-3">
-      <Stat icon={Waves} label="Recolectado" value={Number(totalTons).toFixed(2)} unit="t" tone="sea" />
+      <Stat icon={Waves} label="Recolectado" value={fmtKg(totalTons)} unit="kg" tone="sea" />
       <Stat icon={MapPinned} label="Territorio" value={meters.toLocaleString()} unit="m" tone="eco" />
       <Stat icon={Trophy} label="Ranking" value={rank > 0 ? `#${rank}` : "—"} unit="" tone="gold" />
     </div>

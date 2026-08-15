@@ -1,3 +1,4 @@
+import { fmtKg } from "@/lib/units";
 import { useState } from "react";
 import { Zone, statusLabel, statusColor, canConquer } from "@/lib/marvi-types";
 import { useGuardians, useMyProfile, useClaimTerritory, useReportCleanup, useCheckIn } from "@/lib/marvi-queries";
@@ -112,7 +113,7 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
               </p>
               {owner && zone.conquered_with_tons !== null && (
                 <p className="text-xs text-muted-foreground">
-                  Conquistó con <b className="text-primary">{Number(zone.conquered_with_tons).toFixed(2)} t</b>
+                  Conquistó con <b className="text-primary">{fmtKg(zone.conquered_with_tons)} kg</b>
                 </p>
               )}
             </div>
@@ -138,7 +139,7 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
             </div>
             <p className="text-xs text-muted-foreground">
               {zone.status === "protected"
-                ? "Zona blindada como Protegida. Si la descuidas 3 días, alguien con más toneladas puede arrebatártela."
+                ? "Zona blindada como Protegida. Si la descuidas 3 días, alguien con más kilos puede arrebatártela."
                 : "Trabaja 3 días seguidos para protegerla y ganar la insignia Guardián Oficial."}
             </p>
           </div>
@@ -151,7 +152,7 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
             </div>
             <Progress value={zone.hazard_level} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              Total recolectado en zona: <b className="text-deep">{Number(zone.total_tons_collected).toFixed(3)} t</b>
+              Total recolectado en zona: <b className="text-deep">{fmtKg(zone.total_tons_collected, 1)} kg</b>
             </p>
           </div>
 

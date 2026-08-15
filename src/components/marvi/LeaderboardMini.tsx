@@ -1,3 +1,4 @@
+import { fmtKg } from "@/lib/units";
 import { Crown, Trophy, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGuardians } from "@/lib/marvi-queries";
@@ -14,7 +15,7 @@ export const LeaderboardMini = ({ limit = 5 }: { limit?: number }) => {
         <h3 className="font-display font-bold text-deep flex items-center gap-2">
           <Trophy className="size-4 text-gold" /> Líderes de la Costa
         </h3>
-        <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">por toneladas</span>
+        <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">por kilos</span>
       </div>
       {isLoading ? (
         <div className="py-6 grid place-items-center"><Loader2 className="size-5 text-primary animate-spin" /></div>
@@ -48,7 +49,7 @@ export const LeaderboardMini = ({ limit = 5 }: { limit?: number }) => {
                 <p className="text-[11px] text-muted-foreground truncate">{g.badge}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold tabular-nums text-primary">{Number(g.total_tons).toFixed(2)}t</p>
+                <p className="text-sm font-bold tabular-nums text-primary">{fmtKg(g.total_tons)} kg</p>
                 <p className="text-[10px] text-muted-foreground">{g.zones_owned} zonas</p>
               </div>
             </div>

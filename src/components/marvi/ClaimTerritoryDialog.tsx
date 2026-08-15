@@ -142,7 +142,7 @@ export const ClaimTerritoryDialog = ({
               className="h-12 rounded-2xl"
             />
             <p className="text-[11px] text-muted-foreground">
-              Entre 50 y 1000 m. Otros guardianes no podrán conquistar dentro salvo que te superen en toneladas.
+              Entre 50 y 1000 m. Otros guardianes no podrán conquistar dentro salvo que te superen en kilos.
             </p>
           </div>
 

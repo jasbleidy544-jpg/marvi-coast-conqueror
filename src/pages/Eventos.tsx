@@ -147,7 +147,7 @@ const Eventos = () => (
 
       <div className="glass-card rounded-4xl p-5 text-center text-sm text-muted-foreground">
         <Trophy className="size-5 text-gold mx-auto mb-2" />
-        Los pesajes se hacen en puntos oficiales junto a la marca patrocinadora. Tus toneladas y zonas conquistadas suman automáticamente al ranking del torneo.
+        Los pesajes se hacen en puntos oficiales junto a la marca patrocinadora. Tus kilos y zonas conquistadas suman automáticamente al ranking del torneo.
       </div>
     </div>
   </AppShell>

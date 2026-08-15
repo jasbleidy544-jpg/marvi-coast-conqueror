@@ -1,3 +1,4 @@
+import { fmtKg } from "@/lib/units";
 import { AppShell } from "@/components/marvi/AppShell";
 import { Crown, Trophy, Waves, MapPinned, Award, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,7 +19,7 @@ const Ranking = () => {
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold text-deep">Ranking de la Costa</h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            La regla de oro: gana quien recoja más toneladas de residuos.
+            La regla de oro: gana quien recoja más kilos de residuos.
           </p>
         </header>
 
@@ -90,7 +91,7 @@ const Ranking = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-display text-lg font-bold text-primary tabular-nums">
-                      {Number(g.total_tons).toFixed(2)}<span className="text-xs text-muted-foreground ml-0.5">t</span>
+                      {fmtKg(g.total_tons)}<span className="text-xs text-muted-foreground ml-0.5">kg</span>
                     </p>
                     <p className="text-[10px] text-muted-foreground flex items-center gap-1 justify-end">
                       <Waves className="size-2.5" /> recolectado

@@ -57,6 +57,6 @@ export function canConquer(
   }
   return {
     canTake: false,
-    reason: `Necesitas superar las ${ownerTons.toFixed(2)} t de ${ownerName ?? "el guardián"}. Te faltan ${(ownerTons - myTons).toFixed(2)} t.`,
+    reason: `Necesitas superar los ${(ownerTons*1000).toLocaleString("es-CO",{maximumFractionDigits:0})} kg de ${ownerName ?? "el guardián"}. Te faltan ${((ownerTons - myTons)*1000).toLocaleString("es-CO",{maximumFractionDigits:0})} kg.`,
   };
 }

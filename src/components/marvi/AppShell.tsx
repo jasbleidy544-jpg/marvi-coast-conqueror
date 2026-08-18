@@ -1,7 +1,9 @@
 import { TopNav, BottomNav } from "./Navigation";
+import { HelpCenter } from "./HelpCenter";
 import { useMyProfile } from "@/lib/marvi-queries";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+
 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
@@ -18,13 +20,17 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
             Guardianes de la Costa
           </div>
         </div>
-        <Link
-          to={user ? "/perfil" : "/auth"}
-          className="size-10 rounded-2xl bg-gradient-sea grid place-items-center text-white font-bold shadow-glow text-xs"
-        >
-          {initials}
-        </Link>
+        <div className="flex items-center gap-1.5">
+          <HelpCenter />
+          <Link
+            to={user ? "/perfil" : "/auth"}
+            className="size-10 rounded-2xl bg-gradient-sea grid place-items-center text-white font-bold shadow-glow text-xs"
+          >
+            {initials}
+          </Link>
+        </div>
       </header>
+
       <main className="px-4 md:px-8 pt-3 md:pt-6">{children}</main>
       <BottomNav />
     </div>

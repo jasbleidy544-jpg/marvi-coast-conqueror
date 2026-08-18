@@ -4,7 +4,9 @@ import { cn } from "@/lib/utils";
 import logo from "@/assets/marvi-logo.png";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { HelpCenter } from "./HelpCenter";
 import { toast } from "sonner";
+
 
 const links = [
   { to: "/", label: "Mapa", icon: Map },
@@ -48,7 +50,9 @@ export const TopNav = () => {
               {label}
             </NavLink>
           ))}
+          <HelpCenter className="ml-1" />
           {user ? (
+
             <Button
               variant="ghost"
               size="sm"

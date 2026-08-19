@@ -101,11 +101,11 @@ const Auth = () => {
           </h1>
           <p className="text-white/80 max-w-md">
             Cada kilo de basura que recolectas en Santa Marta te da poder para conquistar
-            zonas de playa. Mantén tu territorio limpio durante 3 días y será oficialmente <b>Protegido</b>.
+            zonas de playa. Corre tu ronda, planta tu bandera y la zona es <b>oficialmente tuya</b> al instante.
           </p>
           <div className="grid grid-cols-3 gap-3 max-w-md pt-4">
             <Stat n="15" l="zonas costeras" />
-            <Stat n="3" l="días para proteger" />
+            <Stat n="0" l="días de espera" />
             <Stat n="∞" l="impacto real" />
           </div>
         </div>

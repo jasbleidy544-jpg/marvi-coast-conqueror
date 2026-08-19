@@ -43,7 +43,7 @@ const SECTIONS: { emoji: string; title: string; points: string[] }[] = [
     points: [
       "Activa el permiso de ubicación en tu navegador.",
       "Debes estar a menos de 500 m del centro de la zona.",
-      "Si estás lejos, la app marca error: no se puede reportar ni marcar racha.",
+      "Si estás lejos, la app marca error: no se puede reportar ni conquistar.",
     ],
   },
   {
@@ -57,12 +57,13 @@ const SECTIONS: { emoji: string; title: string; points: string[] }[] = [
     ],
   },
   {
-    emoji: "🔥",
-    title: "Racha de 3 días",
+    emoji: "🏃",
+    title: "Modo carrera",
     points: [
-      "1 check-in por día, máximo — no se puede repetir el mismo día.",
-      "3 días seguidos = zona 🛡️ Protegida + insignia “Guardián Oficial”.",
-      "Si abandonas 3 días, pierdes la protección y te la pueden robar.",
+      "Toca ▶️ “Iniciar carrera” y sal a correr o caminar tu ronda.",
+      "El mapa dibuja tu recorrido en vivo. 📈",
+      "Cada ~180 m plantas bandera automáticamente: la zona es tuya al instante. 🚩",
+      "Si el tramo ya tiene dueño con más kilos, sigues corriendo sin perder nada.",
     ],
   },
   {
@@ -71,7 +72,7 @@ const SECTIONS: { emoji: string; title: string; points: string[] }[] = [
     points: [
       "Gana quien más kilos ha recolectado.",
       "Para robar una zona debes estar dentro de ella y superar los kilos del dueño.",
-      "Consistencia + kilos = territorio.",
+      "Al cambiar de dueño nadie pierde kilos: los puntos siempre se conservan. ✅",
     ],
   },
   {

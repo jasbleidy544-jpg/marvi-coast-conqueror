@@ -154,7 +154,7 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
           ) : isMine ? (
             <div className="space-y-3">
               <Button onClick={handleCheckIn} variant="hero" size="lg" className="w-full" disabled={checkIn.isPending}>
-                <Calendar className="size-4" /> Registrar día de trabajo
+                <Calendar className="size-4" /> Registrar ronda de hoy
               </Button>
               <CleanupForm kilos={kilos} setKilos={setKilos} onSubmit={handleReport} loading={report.isPending} />
             </div>

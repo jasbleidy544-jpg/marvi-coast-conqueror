@@ -1,23 +1,44 @@
-import { useState, useMemo } from "react";
-import { MapContainer, TileLayer, Circle, Tooltip, ZoomControl } from "react-leaflet";
+import { useState, useMemo, useEffect } from "react";
+import { MapContainer, TileLayer, Circle, Tooltip, ZoomControl, Polyline, CircleMarker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useZones, useGuardians } from "@/lib/marvi-queries";
 import { Zone, statusHex, statusLabel } from "@/lib/marvi-types";
 import { useAuth } from "@/hooks/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
 import { ZoneSheet } from "./ZoneSheet";
 import { ClaimTerritoryDialog } from "./ClaimTerritoryDialog";
+import { useRunTracker } from "@/hooks/useRunTracker";
 import { Button } from "@/components/ui/button";
-import { Waves, Loader2, Flag, LogIn } from "lucide-react";
+import { Waves, Loader2, Flag, LogIn, Play, Square, Footprints } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 const CENTER: [number, number] = [11.24, -74.05];
+
+const FollowRunner = ({ position }: { position: { lat: number; lng: number } | null }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (position) map.setView([position.lat, position.lng], Math.max(map.getZoom(), 16), { animate: true });
+  }, [position, map]);
+  return null;
+};
 
 export const ConquestMap = () => {
   const { data: zones, isLoading } = useZones();
   const { data: guardians } = useGuardians();
   const { user } = useAuth();
+  const qc = useQueryClient();
   const [selected, setSelected] = useState<Zone | null>(null);
   const [claimOpen, setClaimOpen] = useState(false);
+
+  const run = useRunTracker({
+    onZoneChange: () => {
+      qc.invalidateQueries({ queryKey: ["zones"] });
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      qc.invalidateQueries({ queryKey: ["guardians"] });
+    },
+    onMessage: (msg, ok) => (ok ? toast.success(msg) : toast.message(msg)),
+  });
 
   const guardianMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -32,6 +53,8 @@ export const ConquestMap = () => {
       </div>
     );
   }
+
+  const km = (run.distance / 1000).toFixed(2);
 
   return (
     <>
@@ -52,6 +75,7 @@ export const ConquestMap = () => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ZoomControl position="bottomright" />
+          {run.running && <FollowRunner position={run.position} />}
 
           {zones?.map((zone) => {
             const isMine = zone.guardian_id === user?.id;
@@ -83,26 +107,64 @@ export const ConquestMap = () => {
               </Circle>
             );
           })}
+
+          {/* Ruta de la carrera */}
+          {run.path.length > 1 && (
+            <Polyline
+              positions={run.path.map((p) => [p.lat, p.lng] as [number, number])}
+              pathOptions={{ color: "#0ea5e9", weight: 5, opacity: 0.9 }}
+            />
+          )}
+          {run.position && (
+            <CircleMarker
+              center={[run.position.lat, run.position.lng]}
+              radius={7}
+              pathOptions={{ color: "#ffffff", weight: 3, fillColor: "#0ea5e9", fillOpacity: 1 }}
+            />
+          )}
         </MapContainer>
 
         {/* Floating header */}
         <div className="absolute top-4 left-4 z-[400] glass-card-strong rounded-2xl px-3 py-1.5 flex items-center gap-2 pointer-events-none">
           <Waves className="size-4 text-primary" />
           <span className="text-xs font-semibold text-deep tracking-wide">
-            MAPA LIBRE · CONQUISTA TU ZONA
+            MAPA LIBRE · CORRE Y CONQUISTA
           </span>
         </div>
 
-        {/* Conquer button */}
-        <div className="absolute bottom-4 left-4 z-[400]">
+        {/* Marcador de carrera en vivo */}
+        {run.running && (
+          <div className="absolute top-16 left-4 z-[400] glass-card-strong rounded-2xl px-3 py-2 text-[11px] font-bold text-deep flex items-center gap-3">
+            <span className="flex items-center gap-1.5 text-primary">
+              <Footprints className="size-3.5" /> {km} km
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Flag className="size-3.5 text-eco" /> {run.conquered} zonas
+            </span>
+          </div>
+        )}
+
+        {/* Acciones */}
+        <div className="absolute bottom-4 left-4 z-[400] flex flex-col gap-2 items-start">
           {user ? (
-            <Button onClick={() => setClaimOpen(true)} variant="hero" size="lg" className="shadow-lg">
-              <Flag className="size-4" /> Conquistar mi ubicación
-            </Button>
+            <>
+              {run.running ? (
+                <Button onClick={run.stop} variant="destructive" size="lg" className="shadow-lg">
+                  <Square className="size-4" /> Terminar carrera
+                </Button>
+              ) : (
+                <Button onClick={run.start} variant="hero" size="lg" className="shadow-lg">
+                  <Play className="size-4" /> Iniciar carrera
+                </Button>
+              )}
+              <Button onClick={() => setClaimOpen(true)} variant="outline" size="sm" className="shadow-lg bg-background/90">
+                <Flag className="size-4" /> Conquistar aquí
+              </Button>
+            </>
           ) : (
             <Link to="/auth">
               <Button variant="hero" size="lg" className="shadow-lg">
-                <LogIn className="size-4" /> Inicia sesión para conquistar
+                <LogIn className="size-4" /> Inicia sesión para correr
               </Button>
             </Link>
           )}

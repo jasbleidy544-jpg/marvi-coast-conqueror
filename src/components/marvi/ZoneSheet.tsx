@@ -120,27 +120,15 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
             {isMine && <Badge className="bg-primary/15 text-primary border-primary/20 hover:bg-primary/15">Tú</Badge>}
           </div>
 
-          {/* Streak */}
+          {/* Propiedad */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-deep">
-              <span className="flex items-center gap-1.5"><Calendar className="size-3.5" /> RACHA DE 3 DÍAS</span>
-              <span className="tabular-nums">{Math.min(zone.streak, 3)}/3</span>
-            </div>
-            <div className="flex gap-1.5">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "h-2 flex-1 rounded-full transition-all",
-                    i < zone.streak ? "bg-gradient-eco shadow-eco" : "bg-muted",
-                  )}
-                />
-              ))}
+              <span className="flex items-center gap-1.5"><Calendar className="size-3.5" /> TERRITORIO OFICIAL</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              {zone.status === "protected"
-                ? "Zona blindada como Protegida. Si la descuidas 3 días, alguien con más kilos puede arrebatártela."
-                : "Trabaja 3 días seguidos para protegerla y ganar la insignia Guardián Oficial."}
+              Esta zona es oficialmente de su guardián desde que plantó la bandera. Solo cambia de dueño
+              si alguien con <b className="text-deep">más kilos recolectados</b> la conquista estando dentro del radio.
+              Los kilos de cada guardián no se pierden nunca.
             </p>
           </div>
 

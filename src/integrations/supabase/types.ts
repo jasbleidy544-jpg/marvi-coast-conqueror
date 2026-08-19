@@ -250,26 +250,16 @@ export type Database = {
         Args: { _lat?: number; _lng?: number; _zone_id: string }
         Returns: Json
       }
-      claim_territory:
-        | {
-            Args: {
-              _lat: number
-              _lng: number
-              _name: string
-              _radius_m?: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              _kind?: string
-              _lat: number
-              _lng: number
-              _name: string
-              _radius_m?: number
-            }
-            Returns: Json
-          }
+      claim_territory: {
+        Args: {
+          _kind?: string
+          _lat: number
+          _lng: number
+          _name: string
+          _radius_m?: number
+        }
+        Returns: Json
+      }
       conquer_zone: { Args: { _zone_id: string }; Returns: Json }
       has_role: {
         Args: {

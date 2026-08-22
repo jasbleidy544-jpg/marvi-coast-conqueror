@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Waves, Building2, Shield } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Waves, Building2, Shield, Camera, Sparkles, PartyPopper } from "lucide-react";
 import { toast } from "sonner";
+import { AVATAR_SEEDS, generatedAvatar, uploadAvatar } from "@/lib/avatar";
+import { cn } from "@/lib/utils";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -19,10 +22,23 @@ const Auth = () => {
   const [role, setRole] = useState<"guardian" | "sponsor">("guardian");
   const [brandName, setBrandName] = useState("");
   const [brandTagline, setBrandTagline] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [seed, setSeed] = useState<string>(AVATAR_SEEDS[0]);
+  const [welcome, setWelcome] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user) navigate("/", { replace: true });
-  }, [user, navigate]);
+    if (user && !welcome) navigate("/", { replace: true });
+  }, [user, welcome, navigate]);
+
+  const pickPhoto = (f: File | null) => {
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) return toast.error("La foto debe pesar menos de 5 MB.");
+    setPhoto(f);
+    setPhotoPreview(URL.createObjectURL(f));
+  };
+
 
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();

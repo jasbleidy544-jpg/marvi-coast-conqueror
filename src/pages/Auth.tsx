@@ -90,10 +90,23 @@ const Auth = () => {
         return toast.error("Cuenta creada. Inicia sesión para continuar.");
       }
     }
+
+    // Guardar avatar (foto subida o avatar generado)
+    try {
+      const { data: session } = await supabase.auth.getUser();
+      const uid = session.user?.id;
+      if (uid) {
+        const avatar_url = photo ? await uploadAvatar(uid, photo) : generatedAvatar(seed);
+        await supabase.from("profiles").update({ avatar_url }).eq("id", uid);
+      }
+    } catch {
+      toast.message("No pudimos guardar tu foto, puedes cambiarla luego en tu perfil.");
+    }
+
     setLoading(false);
-    toast.success("¡Cuenta creada! Ya puedes empezar a conquistar la costa.");
-    navigate("/", { replace: true });
+    setWelcome(true);
   };
+
 
   return (
     <div className="min-h-dvh bg-gradient-sand grid lg:grid-cols-2">

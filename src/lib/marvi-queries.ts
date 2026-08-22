@@ -209,3 +209,63 @@ export const useUploadReportPhoto = () => {
     },
   });
 };
+
+// ============ PROGRESO ============
+
+export interface MyReport {
+  id: string;
+  zone_id: string;
+  kilos: number;
+  notes: string | null;
+  created_at: string;
+}
+
+export const useMyReports = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["my-reports", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reports")
+        .select("id, zone_id, kilos, notes, created_at")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as MyReport[];
+    },
+  });
+};
+
+export const useMyCheckIns = () => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["my-checkins", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("check_ins")
+        .select("id, zone_id, created_at")
+        .eq("user_id", user!.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as { id: string; zone_id: string; created_at: string }[];
+    },
+  });
+};
+
+export const useUpdateAvatar = () => {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (avatarUrl: string) => {
+      if (!user) throw new Error("Inicia sesión");
+      const { error } = await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile"] });
+      qc.invalidateQueries({ queryKey: ["guardians"] });
+    },
+  });
+};

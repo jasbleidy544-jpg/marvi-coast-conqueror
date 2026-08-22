@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Waves, Building2, Shield } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Waves, Building2, Shield, Camera, Sparkles, PartyPopper } from "lucide-react";
 import { toast } from "sonner";
+import { AVATAR_SEEDS, generatedAvatar, uploadAvatar } from "@/lib/avatar";
+import { cn } from "@/lib/utils";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -19,10 +22,23 @@ const Auth = () => {
   const [role, setRole] = useState<"guardian" | "sponsor">("guardian");
   const [brandName, setBrandName] = useState("");
   const [brandTagline, setBrandTagline] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [seed, setSeed] = useState<string>(AVATAR_SEEDS[0]);
+  const [welcome, setWelcome] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (user) navigate("/", { replace: true });
-  }, [user, navigate]);
+    if (user && !welcome) navigate("/", { replace: true });
+  }, [user, welcome, navigate]);
+
+  const pickPhoto = (f: File | null) => {
+    if (!f) return;
+    if (f.size > 5 * 1024 * 1024) return toast.error("La foto debe pesar menos de 5 MB.");
+    setPhoto(f);
+    setPhotoPreview(URL.createObjectURL(f));
+  };
+
 
   const signIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,10 +90,23 @@ const Auth = () => {
         return toast.error("Cuenta creada. Inicia sesión para continuar.");
       }
     }
+
+    // Guardar avatar (foto subida o avatar generado)
+    try {
+      const { data: session } = await supabase.auth.getUser();
+      const uid = session.user?.id;
+      if (uid) {
+        const avatar_url = photo ? await uploadAvatar(uid, photo) : generatedAvatar(seed);
+        await supabase.from("profiles").update({ avatar_url }).eq("id", uid);
+      }
+    } catch {
+      toast.message("No pudimos guardar tu foto, puedes cambiarla luego en tu perfil.");
+    }
+
     setLoading(false);
-    toast.success("¡Cuenta creada! Ya puedes empezar a conquistar la costa.");
-    navigate("/", { replace: true });
+    setWelcome(true);
   };
+
 
   return (
     <div className="min-h-dvh bg-gradient-sand grid lg:grid-cols-2">
@@ -172,8 +201,66 @@ const Auth = () => {
                     <Field label="Tagline" value={brandTagline} onChange={setBrandTagline} />
                   </>
                 )}
+
+                {/* Foto o avatar */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-deep">
+                    Tu foto o avatar 🐢
+                  </Label>
+                  <div className="flex items-center gap-3">
+                    <div className="size-16 rounded-2xl overflow-hidden bg-gradient-sea grid place-items-center shrink-0">
+                      <img
+                        src={photoPreview ?? generatedAvatar(seed)}
+                        alt="Vista previa del avatar"
+                        className="size-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => pickPhoto(e.target.files?.[0] ?? null)}
+                      />
+                      <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => fileRef.current?.click()}>
+                        <Camera className="size-4" /> {photo ? "Cambiar foto" : "Subir foto"}
+                      </Button>
+                      {photo && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => { setPhoto(null); setPhotoPreview(null); }}
+                        >
+                          Usar avatar generado
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {!photo && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {AVATAR_SEEDS.map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setSeed(s)}
+                          className={cn(
+                            "size-10 rounded-xl overflow-hidden border-2 transition-all",
+                            seed === s ? "border-primary scale-105" : "border-transparent opacity-70",
+                          )}
+                        >
+                          <img src={generatedAvatar(s)} alt={`Avatar ${s}`} className="size-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <Field label="Correo" type="email" value={email} onChange={setEmail} />
                 <Field label="Contraseña" type="password" value={password} onChange={setPassword} />
+
                 <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
                   {loading ? "Creando…" : "Unirme a MARVI"}
                 </Button>
@@ -188,9 +275,38 @@ const Auth = () => {
           </Link>
         </div>
       </div>
+
+      {/* Bienvenida */}
+      <Dialog open={welcome} onOpenChange={(o) => { if (!o) { setWelcome(false); navigate("/", { replace: true }); } }}>
+        <DialogContent className="rounded-3xl max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl text-deep flex items-center justify-center gap-2">
+              <PartyPopper className="size-6 text-gold" /> ¡Bienvenido, {displayName || "guardián"}!
+            </DialogTitle>
+            <DialogDescription>
+              🌊 Ya eres parte de MARVI. Corre tu ronda, recoge residuos y planta tu bandera:
+              cada kilo te da poder para conquistar territorios.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-1.5 text-left text-sm text-deep bg-white/60 rounded-2xl p-3">
+            <p>📍 Activa tu GPS para validar dónde limpias.</p>
+            <p>🚩 Conquista una zona desde el mapa.</p>
+            <p>📸 Sube evidencia de tu recolección.</p>
+          </div>
+          <Button
+            variant="hero"
+            size="lg"
+            className="w-full"
+            onClick={() => { setWelcome(false); navigate("/", { replace: true }); }}
+          >
+            <Sparkles className="size-4" /> Empezar a conquistar
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
+
 
 const Field = ({
   label, value, onChange, type = "text",

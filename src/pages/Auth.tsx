@@ -201,8 +201,66 @@ const Auth = () => {
                     <Field label="Tagline" value={brandTagline} onChange={setBrandTagline} />
                   </>
                 )}
+
+                {/* Foto o avatar */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-deep">
+                    Tu foto o avatar 🐢
+                  </Label>
+                  <div className="flex items-center gap-3">
+                    <div className="size-16 rounded-2xl overflow-hidden bg-gradient-sea grid place-items-center shrink-0">
+                      <img
+                        src={photoPreview ?? generatedAvatar(seed)}
+                        alt="Vista previa del avatar"
+                        className="size-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => pickPhoto(e.target.files?.[0] ?? null)}
+                      />
+                      <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => fileRef.current?.click()}>
+                        <Camera className="size-4" /> {photo ? "Cambiar foto" : "Subir foto"}
+                      </Button>
+                      {photo && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => { setPhoto(null); setPhotoPreview(null); }}
+                        >
+                          Usar avatar generado
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {!photo && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {AVATAR_SEEDS.map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setSeed(s)}
+                          className={cn(
+                            "size-10 rounded-xl overflow-hidden border-2 transition-all",
+                            seed === s ? "border-primary scale-105" : "border-transparent opacity-70",
+                          )}
+                        >
+                          <img src={generatedAvatar(s)} alt={`Avatar ${s}`} className="size-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <Field label="Correo" type="email" value={email} onChange={setEmail} />
                 <Field label="Contraseña" type="password" value={password} onChange={setPassword} />
+
                 <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
                   {loading ? "Creando…" : "Unirme a MARVI"}
                 </Button>

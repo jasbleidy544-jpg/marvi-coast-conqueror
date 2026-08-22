@@ -12,6 +12,7 @@ import Eventos from "./pages/Eventos.tsx";
 import Reportar from "./pages/Reportar.tsx";
 import Patrocinios from "./pages/Patrocinios.tsx";
 import Perfil from "./pages/Perfil.tsx";
+import Progreso from "./pages/Progreso.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/eventos" element={<Eventos />} />
             <Route path="/patrocinios" element={<Patrocinios />} />
             <Route path="/reportar" element={<ProtectedRoute><Reportar /></ProtectedRoute>} />
+            <Route path="/progreso" element={<ProtectedRoute><Progreso /></ProtectedRoute>} />
             <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Map, Trophy, Calendar, Sparkles, FileText, Building2, LogIn, LogOut } from "lucide-react";
+import { Map, Trophy, Calendar, Sparkles, FileText, Building2, LogIn, LogOut, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/marvi-logo.png";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,7 @@ const links = [
   { to: "/ranking", label: "Ranking", icon: Trophy },
   { to: "/eventos", label: "Eventos", icon: Calendar },
   { to: "/reportar", label: "Reportar", icon: FileText },
+  { to: "/progreso", label: "Progreso", icon: TrendingUp },
   { to: "/patrocinios", label: "Marcas", icon: Building2 },
   { to: "/perfil", label: "Perfil", icon: Sparkles },
 ];

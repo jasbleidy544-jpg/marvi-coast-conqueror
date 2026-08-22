@@ -275,9 +275,38 @@ const Auth = () => {
           </Link>
         </div>
       </div>
+
+      {/* Bienvenida */}
+      <Dialog open={welcome} onOpenChange={(o) => { if (!o) { setWelcome(false); navigate("/", { replace: true }); } }}>
+        <DialogContent className="rounded-3xl max-w-sm text-center">
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl text-deep flex items-center justify-center gap-2">
+              <PartyPopper className="size-6 text-gold" /> ¡Bienvenido, {displayName || "guardián"}!
+            </DialogTitle>
+            <DialogDescription>
+              🌊 Ya eres parte de MARVI. Corre tu ronda, recoge residuos y planta tu bandera:
+              cada kilo te da poder para conquistar territorios.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-1.5 text-left text-sm text-deep bg-white/60 rounded-2xl p-3">
+            <p>📍 Activa tu GPS para validar dónde limpias.</p>
+            <p>🚩 Conquista una zona desde el mapa.</p>
+            <p>📸 Sube evidencia de tu recolección.</p>
+          </div>
+          <Button
+            variant="hero"
+            size="lg"
+            className="w-full"
+            onClick={() => { setWelcome(false); navigate("/", { replace: true }); }}
+          >
+            <Sparkles className="size-4" /> Empezar a conquistar
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
+
 
 const Field = ({
   label, value, onChange, type = "text",

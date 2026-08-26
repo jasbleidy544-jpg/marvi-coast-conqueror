@@ -80,7 +80,7 @@ export const ConquestMap = () => {
           {zones?.map((zone) => {
             const isMine = zone.guardian_id === user?.id;
             const color = statusHex(zone.status);
-            const ownerName = zone.guardian_id ? guardianMap.get(zone.guardian_id) : null;
+            const owner = zone.guardian_id ? guardianMap.get(zone.guardian_id) : null;
             return (
               <Circle
                 key={zone.id}
@@ -99,8 +99,15 @@ export const ConquestMap = () => {
                   direction="center"
                   className="!bg-white/90 !border-0 !shadow-md !rounded-xl !px-2 !py-1 !text-deep"
                 >
-                  <div className="text-[11px] leading-tight text-center">
-                    <p className="font-bold">👑 Guardián {ownerName ?? "—"}</p>
+                  <div className="text-[11px] leading-tight text-center flex flex-col items-center gap-0.5">
+                    {owner && (
+                      <GuardianAvatar
+                        avatarUrl={owner.avatar}
+                        name={owner.name}
+                        className="size-7 rounded-lg text-[10px]"
+                      />
+                    )}
+                    <p className="font-bold">👑 {owner ? owner.name : "Zona libre"}</p>
                     <p className="text-muted-foreground">{zone.name} · {statusLabel(zone.status)}</p>
                   </div>
                 </Tooltip>

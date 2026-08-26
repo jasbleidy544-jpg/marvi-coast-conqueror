@@ -108,9 +108,11 @@ export const ConquestMap = () => {
                         className="size-7 rounded-lg text-[10px]"
                       />
                     )}
-                    <p className="font-bold">👑 {owner ? owner.name : "Zona libre"}</p>
-                    <p className="text-muted-foreground">{zone.name} · {statusLabel(zone.status)}</p>
+                    <p className="font-bold text-[12px] text-deep">{zone.name}</p>
+                    <p className="font-semibold">👑 {owner ? owner.name : "Zona libre"}</p>
+                    <p className="text-muted-foreground text-[10px]">{statusLabel(zone.status)}</p>
                   </div>
+
                 </Tooltip>
               </Circle>
             );

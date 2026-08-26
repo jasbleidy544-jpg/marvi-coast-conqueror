@@ -18,12 +18,23 @@ import { cn } from "@/lib/utils";
 
 const SECTIONS: { emoji: string; title: string; points: string[] }[] = [
   {
+    emoji: "🆕",
+    title: "Crea tu cuenta",
+    points: [
+      "Regístrate con correo y contraseña. Sin confirmación de correo. ✉️",
+      "Elige tu identidad: sube tu 📷 foto real o crea un 🎨 avatar.",
+      "Recibirás un mensaje de bienvenida con los primeros pasos. 👋",
+      "Puedes ser 🧹 Guardián (limpias) o 🏢 Marca (patrocinas).",
+    ],
+  },
+  {
     emoji: "🚩",
     title: "Conquistar una zona",
     points: [
       "Toca “Conquistar mi ubicación” estando en el sitio.",
       "Elige tipo: 🌊 costera · 🏙️ urbana · 🌄 rural.",
       "Ponle nombre y queda tu bandera: “👑 Guardián + tu nombre”.",
+      "¡Es tuya al instante! Sin rachas ni esperas. 🎉",
     ],
   },
   {
@@ -43,7 +54,7 @@ const SECTIONS: { emoji: string; title: string; points: string[] }[] = [
     points: [
       "Activa el permiso de ubicación en tu navegador.",
       "Debes estar a menos de 500 m del centro de la zona.",
-      "Si estás lejos, la app marca error: no se puede reportar ni conquistar.",
+      "Si estás lejos, la app marca error: no se puede reportar ni conquistar. 🚫",
     ],
   },
   {
@@ -51,9 +62,9 @@ const SECTIONS: { emoji: string; title: string; points: string[] }[] = [
     title: "Reportar limpieza",
     points: [
       "Sube foto de los residuos (cámara o galería) + tus kilos.",
-      "La IA calcula área, volumen y kilos aproximados de la foto.",
-      "Fotos generadas por IA se rechazan automáticamente.",
-      "Cada 10 kg baja 1 punto de contaminación de la zona.",
+      "La IA analiza la foto y calcula 📐 área, 🧊 volumen y ⚖️ kilos aproximados.",
+      "Fotos generadas por IA se rechazan automáticamente. 🤖❌",
+      "Cada 10 kg verificados baja 1 punto de contaminación de la zona.",
     ],
   },
   {
@@ -68,11 +79,29 @@ const SECTIONS: { emoji: string; title: string; points: string[] }[] = [
   },
   {
     emoji: "⚖️",
-    title: "Regla de oro",
+    title: "Regla de oro (competencia)",
     points: [
       "Gana quien más kilos ha recolectado.",
       "Para robar una zona debes estar dentro de ella y superar los kilos del dueño.",
       "Al cambiar de dueño nadie pierde kilos: los puntos siempre se conservan. ✅",
+    ],
+  },
+  {
+    emoji: "⚠️",
+    title: "Zona descuidada",
+    points: [
+      "Si pasas 3 días sin reportar en tu zona, se marca como en riesgo.",
+      "Verás una advertencia en la app para que vuelvas a cuidarla. 🔔",
+      "Otro guardián con más kilos puede quitártela si la descuidas.",
+    ],
+  },
+  {
+    emoji: "📊",
+    title: "Mi Progreso",
+    points: [
+      "En “Mi Progreso” ves tus kilos totales, zonas y nivel. ⭐",
+      "Sube de nivel: de Aprendiz 🌱 hasta Leyenda del Mar 🌊.",
+      "Gráfica con tu recolección de los últimos 14 días. 📈",
     ],
   },
   {

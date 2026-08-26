@@ -6,6 +6,7 @@ import { Zone, statusHex, statusLabel } from "@/lib/marvi-types";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { ZoneSheet } from "./ZoneSheet";
+import { GuardianAvatar } from "./GuardianAvatar";
 import { ClaimTerritoryDialog } from "./ClaimTerritoryDialog";
 import { useRunTracker } from "@/hooks/useRunTracker";
 import { Button } from "@/components/ui/button";
@@ -41,8 +42,8 @@ export const ConquestMap = () => {
   });
 
   const guardianMap = useMemo(() => {
-    const m = new Map<string, string>();
-    guardians?.forEach((g) => m.set(g.id, g.display_name));
+    const m = new Map<string, { name: string; avatar: string | null }>();
+    guardians?.forEach((g) => m.set(g.id, { name: g.display_name, avatar: g.avatar_url }));
     return m;
   }, [guardians]);
 
@@ -80,7 +81,7 @@ export const ConquestMap = () => {
           {zones?.map((zone) => {
             const isMine = zone.guardian_id === user?.id;
             const color = statusHex(zone.status);
-            const ownerName = zone.guardian_id ? guardianMap.get(zone.guardian_id) : null;
+            const owner = zone.guardian_id ? guardianMap.get(zone.guardian_id) : null;
             return (
               <Circle
                 key={zone.id}
@@ -99,8 +100,15 @@ export const ConquestMap = () => {
                   direction="center"
                   className="!bg-white/90 !border-0 !shadow-md !rounded-xl !px-2 !py-1 !text-deep"
                 >
-                  <div className="text-[11px] leading-tight text-center">
-                    <p className="font-bold">👑 Guardián {ownerName ?? "—"}</p>
+                  <div className="text-[11px] leading-tight text-center flex flex-col items-center gap-0.5">
+                    {owner && (
+                      <GuardianAvatar
+                        avatarUrl={owner.avatar}
+                        name={owner.name}
+                        className="size-7 rounded-lg text-[10px]"
+                      />
+                    )}
+                    <p className="font-bold">👑 {owner ? owner.name : "Zona libre"}</p>
                     <p className="text-muted-foreground">{zone.name} · {statusLabel(zone.status)}</p>
                   </div>
                 </Tooltip>

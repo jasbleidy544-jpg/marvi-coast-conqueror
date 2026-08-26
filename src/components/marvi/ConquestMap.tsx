@@ -13,7 +13,7 @@ import { Waves, Loader2, Flag, LogIn, Play, Square, Footprints } from "lucide-re
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
-const CENTER: [number, number] = [11.24, -74.05];
+const CENTER: [number, number] = [11.18, -74.13];
 
 const FollowRunner = ({ position }: { position: { lat: number; lng: number } | null }) => {
   const map = useMap();
@@ -48,7 +48,7 @@ export const ConquestMap = () => {
 
   if (isLoading) {
     return (
-      <div className="w-full aspect-[16/10] md:aspect-[16/9] rounded-4xl glass-card grid place-items-center">
+      <div className="w-full h-[75dvh] md:h-[80dvh] rounded-4xl glass-card grid place-items-center">
         <Loader2 className="size-8 text-primary animate-spin" />
       </div>
     );
@@ -58,10 +58,10 @@ export const ConquestMap = () => {
 
   return (
     <>
-      <div className="relative w-full aspect-[16/10] md:aspect-[16/9] rounded-4xl overflow-hidden glass-card border-white/60">
+      <div className="relative w-full h-[75dvh] md:h-[80dvh] min-h-[420px] rounded-4xl overflow-hidden glass-card border-white/60">
         <MapContainer
           center={CENTER}
-          zoom={10}
+          zoom={12}
           minZoom={3}
           maxZoom={18}
           zoomControl={false}

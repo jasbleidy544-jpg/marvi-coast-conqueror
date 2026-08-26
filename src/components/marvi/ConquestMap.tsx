@@ -41,8 +41,8 @@ export const ConquestMap = () => {
   });
 
   const guardianMap = useMemo(() => {
-    const m = new Map<string, string>();
-    guardians?.forEach((g) => m.set(g.id, g.display_name));
+    const m = new Map<string, { name: string; avatar: string | null }>();
+    guardians?.forEach((g) => m.set(g.id, { name: g.display_name, avatar: g.avatar_url }));
     return m;
   }, [guardians]);
 

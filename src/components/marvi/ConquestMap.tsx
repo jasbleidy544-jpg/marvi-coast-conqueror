@@ -6,6 +6,7 @@ import { Zone, statusHex, statusLabel } from "@/lib/marvi-types";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { ZoneSheet } from "./ZoneSheet";
+import { GuardianAvatar } from "./GuardianAvatar";
 import { ClaimTerritoryDialog } from "./ClaimTerritoryDialog";
 import { useRunTracker } from "@/hooks/useRunTracker";
 import { Button } from "@/components/ui/button";

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Crown, Flag, Swords, Calendar, Trash2, LogIn } from "lucide-react";
+import { GuardianAvatar } from "./GuardianAvatar";
 import { getCurrentPosition } from "@/hooks/useGeolocation";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";

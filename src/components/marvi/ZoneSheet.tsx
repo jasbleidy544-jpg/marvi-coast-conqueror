@@ -104,14 +104,23 @@ export const ZoneSheet = ({ zone, onClose }: { zone: Zone | null; onClose: () =>
 
           {/* Guardian */}
           <div className="glass-card rounded-2xl p-4 flex items-center gap-3">
-            <div className="size-12 rounded-2xl bg-gradient-sea grid place-items-center text-white">
-              {owner ? <Crown className="size-6" /> : <Flag className="size-6" />}
-            </div>
+            {owner ? (
+              <GuardianAvatar avatarUrl={owner.avatar_url} name={owner.display_name} className="size-14 text-lg" />
+            ) : (
+              <div className="size-14 rounded-2xl bg-gradient-sea grid place-items-center text-white">
+                <Flag className="size-6" />
+              </div>
+            )}
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Guardián</p>
-              <p className="font-bold text-deep truncate">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold flex items-center gap-1">
+                <Crown className="size-3 text-gold" /> Guardián de {zone.name}
+              </p>
+              <p className="font-bold text-deep truncate text-lg">
                 {owner ? owner.display_name : "Vacante — zona libre"}
               </p>
+              {owner?.badge && (
+                <p className="text-xs text-primary font-semibold">{owner.badge}</p>
+              )}
               {owner && zone.conquered_with_tons !== null && (
                 <p className="text-xs text-muted-foreground">
                   Conquistó con <b className="text-primary">{fmtKg(zone.conquered_with_tons)} kg</b>

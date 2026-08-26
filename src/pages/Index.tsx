@@ -12,7 +12,7 @@ const Index = () => (
     <div className="space-y-4 md:space-y-6 animate-fade-in">
       <StatsBar />
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-        <section className="lg:col-span-8 space-y-4 md:space-y-6">
+        <section className="lg:col-span-9 space-y-4 md:space-y-6">
           <ConquestMap />
           <div className="glass-card rounded-3xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
@@ -28,7 +28,7 @@ const Index = () => (
             </Link>
           </div>
         </section>
-        <aside className="lg:col-span-4 space-y-4 md:space-y-6">
+        <aside className="lg:col-span-3 space-y-4 md:space-y-6">
           <MissionPanel />
           <LeaderboardMini />
         </aside>
